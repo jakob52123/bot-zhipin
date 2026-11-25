@@ -121,7 +121,7 @@
 
 ## 第 2 步：设计说明（`DESIGN.md`，最重要）
 
-这是用户以后面试时要拿出来讲的作品。先问**一个开放问题**：
+这是用户自己的作品，可以放进作品集、写进简历，也可以在面试时拿出来讲。先问**一个开放问题**：
 
 ```text
 用几句话聊聊这个 Bot 就行，我来帮你整理成设计说明：
@@ -244,7 +244,7 @@ BOT-ZHIPIN-BUNDLE v1
 === end ===
 ```
 
-**熟悉 git 的用户**也可以自己 fork 提 PR。需要用户在自己电脑上用 `gh auth login` 走浏览器授权；只提交 `bots/<slug>/`，`bot.yaml` 里要自己填 `author.github`。`author.github` 必须是你自己、也就是提 PR 的账号；填别人的账号，CI 会拦下来。提 PR 时一定要带 `--repo jakob52123/bot-zhipin`：
+**熟悉 git 的用户**也可以自己 fork 提 PR。需要用户在自己电脑上用 `gh auth login` 走浏览器授权；只提交 `bots/<slug>/`，`bot.yaml` 里要自己填 `author.github`。`author.github` 必须填用户本人用来提 PR 的 GitHub 账号；填别人的账号，CI 会拦下来。提 PR 时一定要带 `--repo jakob52123/bot-zhipin`：
 
 ```bash
 gh repo fork jakob52123/bot-zhipin --remote

@@ -4,7 +4,7 @@
 
 上线后你还会有自己的作者主页 `https://bot.jiachengbo.com/authors/<你的 GitHub 用户名>`：显示你的 GitHub 头像和昵称，列出你投的所有 Bot 和小队，可以直接转发。
 
-每个 Bot 都要附一份**设计说明**（`DESIGN.md`）：它解决谁的什么问题、你是怎么设计的、实际效果如何。这份文档就是你的作品，以后面试时可以直接拿出来讲。
+每个 Bot 都要附一份**设计说明**（`DESIGN.md`）：它解决谁的什么问题、你是怎么设计的、实际效果如何。这份文档就是你的作品，可以放进作品集、写进简历，也可以在面试时拿出来讲。
 
 Prompt 和 Skills 不接受投稿；根目录 `prompts/`、`skills/` 只由维护者修改。Bot 自带技能与小队仍按下文投稿。
 
@@ -41,12 +41,12 @@ AI 会先把能查到的信息整理成一份草稿让你确认，再聊几句�
 3. `npm run validate`，按报错里的「改法」修改，直到显示「✓ 校验通过」。
 4. `node scripts/make-submission-link.mjs bots/<slug>` 生成投稿链接，点开后照页面提示登录、提交。
 
-习惯 fork + PR 的也可以照常提 PR，只改 `bots/<slug>/`。每一步的详细说明见 [AGENTS.md](AGENTS.md)。
+习惯 fork + PR 的也可以照常提 PR，只改 `bots/<slug>/`。`author.github` 必须填你用来提 PR 的 GitHub 账号，填别人的账号会被 CI 拦下。每一步的详细说明见 [AGENTS.md](AGENTS.md)。
 
 ### 方式三：只用网页（什么都不装）
 
 1. 在本仓库页面点右上角 **Fork**。
-2. 在电脑上照着 [`bots/_template/`](bots/_template/) 准备好一个文件夹，名字就是你的 slug，里面放齐所需文件。
+2. 在电脑上照着 [`bots/_template/`](bots/_template/) 准备好一个文件夹，名字就是你的 slug，里面放齐所需文件。`author.github` 必须填你用来提 PR 的 GitHub 账号，填别人的账号会被 CI 拦下。
 3. 在你的 fork 里进入 `bots` 目录，点 **Add file → Upload files** 上传（子文件夹要进到对应目录再上传），选「Create a new branch」，点 **Propose changes**，再点 **Create pull request**。
 4. PR 页面下方会自动检查。没通过的话点进去看报错，改好后在同一个分支再上传一次。
 

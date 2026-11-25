@@ -24,13 +24,13 @@
 
 | ID | 任务 | 前置 | 状态 |
 |---|---|---|---|
-| LB0 | 交互规格 v2、决策 19–21、架构与维护流程更新，并写知识库草稿供 Claude 验收后搬入。 | 无 | 进行中 |
-| LB1 | 单时钟活体渲染、视线跟随、SSR 首帧与 bz-play 事件接口。 | 无 | 进行中 |
-| LB2 | sync-faces 抓取官方颜色/形状、25 形状映射及主题配色。 | 无 | 进行中 |
-| LB4 | 活泼彩色 token、配色函数、舞台与 Hero 版式和可访问性回归。 | 无 | 进行中 |
-| LM1 | 将 LB0/1/2/4 合入 feat/living-bots，解决冲突并跑全量检查。 | 前四线验收通过 | 待办 |
-| LB3 | 接真脸、全卡悬停、戳、睡醒、Hero 入场、空货架与 404 互动。 | LM1 | 待办 |
-| LB5 | 验收全过且用户看过成品后，提交推送并向 main 开 PR。 | LB3、总验收、用户点头 | 待办 |
+| LB0 | 交互规格 v2、决策 19–21、架构与维护流程更新，并写知识库草稿供 Claude 验收后搬入。 | 无 | ✅ |
+| LB1 | 单时钟活体渲染、视线跟随、SSR 首帧与 bz-play 事件接口。 | 无 | ✅ |
+| LB2 | sync-faces 抓取官方颜色/形状、25 形状映射及主题配色。 | 无 | ✅ |
+| LB4 | 活泼彩色 token、配色函数、舞台与 Hero 版式和可访问性回归。 | 无 | ✅ |
+| LM1 | 将 LB0/1/2/4 合入 feat/living-bots，解决冲突并跑全量检查。 | 前四线验收通过 | ✅ |
+| LB3 | 接真脸、全卡悬停、戳、睡醒、Hero 入场、空货架与 404 互动。 | LM1 | ✅ |
+| LB5 | 验收全过且用户看过成品后，提交推送并向 main 开 PR。 | LB3、总验收、用户点头 | ✅ |
 
 ## 隐私加固（2026-11-25，决策 74）
 
@@ -88,7 +88,7 @@ AI 自动审核、贴链接自动填信息、线上版本比对、点赞评论�
 | LI3 | 中文三项、严格五项评分、前 50 首个任务 | 写作模型 | `library/annotations/` | ✅ |
 | LI4 | 许可落实：`library/LICENSES.md`、`THIRD_PARTY_NOTICES.md`；INGEST 报告；COMPETITOR-UX | 维护者 | 文档 | ✅ |
 | LI5 | 用户看 INGEST.md 点头 → 推送开 PR | 维护者 | — | ✅ |
-| LI6 | 页面（Prompt、Skills 板块从 library 挑条目；交互单独做） | — | — | ⬜ 等用户定 |
+| LI6 | 页面（Prompt、Skills 板块从 library 挑条目；交互单独做） | — | — | ✅ |
 
 # 被搜到、被转发、被机器读到（2026-11-21）
 
@@ -120,7 +120,7 @@ AI 自动审核、贴链接自动填信息、线上版本比对、点赞评论�
 | TR-WEB-CORE | `theme/track.ts` 模块和单测，不接组件 | 编码 agent | — | `site/.vitepress/theme/track.ts` | ✅ |
 | TR-WEB-HOOK | 接进主题入口和各组件、e2e 核对每个事件 | 编码 agent | #34、#35、#36 已合进 main；TR-WEB-CORE 已完成。全站搜索面板见 TR-SEARCH | `theme/index.ts`、各组件、`theme/submit/`、`tests/e2e/tracking*` | ✅ |
 | TR-SEARCH | 全站搜索面板接 `search`：记录打开方式、完整命中数及是否选中，e2e 核对 | 编码 agent | SP1（#38）、TR-WEB-HOOK | `SearchPalette.vue`、`tests/e2e/tracking.spec.mjs`、埋点文档 | ✅ |
-| TR-INT | 集成、文档、开 PR；线上先备份再迁移，然后合并 | 维护者 | 全部 | — | 🟡 |
+| TR-INT | 集成、文档、开 PR；线上先备份再迁移，然后合并 | 维护者 | 全部 | — | ✅ |
 
 # 让 AI 来找：bot-zhipin skill（2026-11-22）
 
@@ -130,7 +130,7 @@ AI 自动审核、贴链接自动填信息、线上版本比对、点赞评论�
 |---|---|---|---|---|---|
 | FS1 | 构建时输出 `/data/index.json` 和每条完整数据，llms.txt 补 Prompt、Skills | 维护者 | — | `scripts/lib/{agent-data,llms}.mjs`、`site/.vitepress/config.mts`、单测 | ✅ |
 | FS2 | skill 本体：SKILL.md、`find.py`、Claude Code 插件清单 | 编码 agent | FS1 的数据格式 | `integrations/bot-zhipin/`、`.claude-plugin/` | ✅ |
-| FS3 | README、架构、决策；验收后推送开 PR，上线后线上核对 | 维护者 | FS1、FS2 | 文档 | 🟡 |
+| FS3 | README、架构、决策；验收后推送开 PR，上线后线上核对 | 维护者 | FS1、FS2 | 文档 | ✅ |
 
 # 投稿人的作者主页（2026-11-22）
 
@@ -144,4 +144,4 @@ AI 自动审核、贴链接自动填信息、线上版本比对、点赞评论�
 | R2 | 审查修正·前端：作者页归 Bot 模块、拉热度、本页卡片署名改纯文字、首字按字形且图片态透明、e2e 确定测水合两条分支 | 编码 agent | P、A | 四个组件、`author.css`、`tests/e2e/` | ✅ |
 | R3 | 审查修正·冒名：fork PR 新增条目的 `author.github` 必须是 PR 作者；投稿文档写明作者主页 | 编码 agent | P、A | `scripts/check-pr-scope.mjs`、`ci.yml`、文档 | ✅ |
 | R4 | 第二轮审查收尾：缓存键小写测试、⚠ 改 Actions 注释、撤主页只限外部收录、fork PR 改越界文件一律不合、首字大写按长度、Symbol 注入键 | 编码 agent | R1、R2、R3 | 见 PR | ✅ |
-| M | 集成到最新 main，多 agent 对抗审查三轮，真后端加真 GitHub 头像实测，截图目视，然后合并 | 维护者 | R1–R4 | — | 🟡 |
+| M | 集成到最新 main，多 agent 对抗审查三轮，真后端加真 GitHub 头像实测，截图目视，然后合并 | 维护者 | R1–R4 | — | ✅ |

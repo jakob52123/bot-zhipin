@@ -8,7 +8,7 @@ tagline: 一句话说清它帮谁做什么    # 一句话介绍，40 个字以�
 category: 产品                    # 分组，九选一：产品、市场、销售、内容、运营、学习、求职、管家、生活
 author:
   name: 你的名字
-  github: your-github-username    # 你的 GitHub 用户名，不带 @
+  github: your-github-username    # 你自己的 GitHub 用户名，就是提 PR 的那个账号，不带 @
 templateUrl: https://x.ai/bot/REPLACE-ME   # 在 Grok Bot 里分享模板后得到的链接
 addedAt: 2026-01-01               # 上架日期，填你提交那天，格式 YYYY-MM-DD
 prerequisites:                    # 导入前要准备什么。什么都不用准备，就只留一行「- 无」
