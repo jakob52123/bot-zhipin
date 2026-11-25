@@ -4,7 +4,7 @@
 
 ## 0. 一句话
 
-AI 生成 `https://bot.jiachengbo.com/submit#BZB1:…` → 投稿人在 `/submit` 预览、用 GitHub 登录、勾授权、提交（2026-11-15 起不传截图，DECISIONS 第 43 条）→ Function 用 GitHub App 在 `submission/web-<数字id>-<slug>` 建单提交并开 PR、开启自动合并 → `pull_request` CI 自动跑 → 维护者 Approve → 自动合并 → `announce-live` 工作流在部署完成后评论「已上线」。
+AI 生成 `https://bot.jiachengbo.com/submit#BZB1:…` → 投稿人在 `/submit` ① 检查投稿包并预览、② 用 GitHub 登录、③ 授权并提交（2026-11-15 起不传截图，DECISIONS 第 43 条）→ Function 用 GitHub App 在 `submission/web-<数字id>-<slug>` 建单提交并开 PR、开启自动合并 → `pull_request` CI 自动跑 → 维护者 Approve → 自动合并 → `announce-live` 工作流在部署完成后评论「已上线」。
 
 原 Issue 表单链路（`submission.yml`）保留为备用，行为见 §8。
 
@@ -161,36 +161,27 @@ applyServerFields(botYamlText, { login, addedAt }) // → 新的 bot.yaml 文本
   - 失败时 302 `/submit?login=cancelled|expired|failed`：用户点了拒绝是 `cancelled`，state 不对或过期是 `expired`，其余是 `failed`。
   - `/api/auth/start` 被限流时不跳 GitHub，直接 302 `/submit?login=failed&retry=<秒>`。
   - **不接受任何 returnTo 参数。**
-- `GET /api/auth/me`：已登录返回 200 `{ ok:true, id, login }`，否则 401 `unauthenticated`。头像由前端用 `https://avatars.githubusercontent.com/u/<id>?s=64` 拼。
+- `GET /api/auth/me`：已登录返回 200 `{ ok:true, id, login }`，否则 401 `unauthenticated`。头像由前端用 `https://avatars.githubusercontent.com/u/<id>?s=56` 拼。
 - `POST /api/auth/logout`：清 cookie，返回 204。
 
-### 3.4 截图上传 `POST /api/submit/screenshot`
+### 3.4 旧页面兼容接口
 
-> 2026-11-15 起前端不再调用这个接口（DECISIONS 第 43 条）。接口保留，只为兼容部署时还开着旧页面的人；下面的规格不变。
-
-- 要求登录，否则 401。请求体就是图片原始字节，`Content-Type: image/png|jpeg|webp|gif`；`Content-Length` 必填且 ≤ 2097152，否则 413 `too_large`。读的时候边读边计数，超了立刻中断。
-- 校验文件头，格式必须和 Content-Type 同属一类（jpeg/jpg 视为同类），否则 415。
-- 编码：用原生 `Uint8Array.prototype.toBase64`；没有就在 `wrangler.toml` 加 `compatibility_flags = ["nodejs_compat"]`，改用 `Buffer`。**禁止**用纯 JS 循环做 base64。
-- 拼出 `{"encoding":"base64","content":"…"}`，调 `POST /repos/{repo}/git/blobs`。
-- 不需要自定义请求头（页面用 XHR 读上传进度，同源请求）。槽位顺序由提交时 `screenshots` 数组的顺序决定。
-- 返回 200：`{ ok:true, receipt, sha, size, format, exp }`，`exp` 是回执过期时间（毫秒时间戳，现在 + 24 小时）。
-  - `receipt = base64url(JSON{ v:1, uid, sha, size, format, exp: 现在+24h }).base64url(HMAC)`。
-- 限流：每人每天 60 次或 60MB；全站每天 1000 次。
+`functions/api/submit/screenshot.ts` 仍处理 `POST /api/submit/screenshot`；当前前端不调用。上传协议见附录，提交时的回执校验见 §3.5。
 
 ### 3.5 提交 `POST /api/submit`
 
 请求体（JSON，≤ 700KB）：
 
 ```json
-{ "bundle": "<BOT-ZHIPIN-BUNDLE v1 明文>", "license": true, "dryRun": false }
+{ "bundle": "<BOT-ZHIPIN-BUNDLE v1 明文>", "license": true }
 ```
 
-处理顺序（任何一步失败都不写 GitHub）：
+以上是当前页面发送的正文；`dryRun` 是接口的可选字段。处理顺序：
 
 1. 要求登录。`license !== true` 返回 400 `license_required`。`dryRun` 为 true 但当前用户 id 不在 `SUBMIT_DRY_RUN_USER_IDS` 里，返回 403。
 2. 校验前仅计 `submit-try`（每人每小时 40 次）；解出 slug 后，非 dryRun 再计 `submit-slug`（同一人同一 slug 每 2 分钟 1 次）。每人每天 10 次和全站每小时 20 次的发布额度延后到第 10 步之后扣。超限返回 429 `rate_limited`，带 `retryAfter` 秒数和 `Retry-After` 头。
 3. 只 `unpack` 一次明文，允许首尾空白和代码围栏；`BZB1:` 一律 400 `bad_request`，不调用 `decodeToken`，不做服务端解压。浏览器仍可解压链接，原生 base64url strict 解码优先，旧浏览器回退；发送给服务端的始终是明文。解包同时拒绝非良构 UTF-16（孤立代理码元），失败带 `errors`。
-4. 回执：`screenshots` 可以不传，也可以是空数组，都当作零张（2026-11-15 起新页面不再带这个字段）；传了就必须是数组。有回执时逐个验签，`uid` 必须等于当前用户，未过期。失败返回 400 `receipt_invalid`，带 `slots: [下标]`（对应请求数组的位置，从 0 开始）。
+4. 回执：`screenshots` 可以不传，也可以是空数组，都当作零张（2026-11-15 起新页面不再带这个字段）；传了就必须是数组。`verifyReceipts` 对旧页面传来的回执检查数量、签名、类型版本、SHA、大小和格式，`uid` 必须等于当前用户，未过期。失败返回 400 `receipt_invalid`，带 `slots: [下标]`（对应请求数组的位置，从 0 开始）。
 5. 拿安装令牌：用 App 私钥签 RS256 JWT，`POST /app/installations/{id}/access_tokens`，参数 `{ repositories: ['bot-zhipin'], permissions: { contents:'write', pull_requests:'write' } }`。令牌在 isolate 内存里缓存，最多 50 分钟。
 6. `GET /git/ref/heads/main` 拿 `mainHead`；`GET /git/commits/{mainHead}` 拿根 tree。
 7. 判断是谁的：`GET /contents/bots/{slug}/bot.yaml?ref={mainHead}`。
@@ -298,7 +289,7 @@ CREATE TABLE IF NOT EXISTS bot_owners (
 | `license_required` | 400 | 请先勾选授权。 |
 | `receipt_invalid` | 400 | 有截图需要重新上传（带 `slots`）。 |
 | `unauthenticated` | 401 | 请先用 GitHub 登录。 |
-| `session_expired` | 401 | 登录已过期，请重新登录（已传的截图不用重传）。 |
+| `session_expired` | 401 | 登录已过期，请重新登录。 |
 | `forbidden_origin` | 403 | 请在本站页面里提交。 |
 | `not_found` | 404 | 找不到这个投稿。 |
 | `slug_taken` | 409 | 这个英文短名已被别人使用，请让 AI 换一个。 |
@@ -316,11 +307,10 @@ CREATE TABLE IF NOT EXISTS bot_owners (
 - L3 提供 `site/.vitepress/theme/submit/` 下的 TS 模块，L4 只调用它们：
   - `bundle.ts`：读片段或粘贴内容 → 明文；
   - `context.ts`：取 `/api-data/submit-context.json`；
-  - `preview.ts`：`summarizeBot` 纯函数，从 `bots.mjs` 抽出来，两边共用；`renderDesign(md, assetMap)`，共用 `scripts/lib/design-markdown.mjs` 的规则，本地截图映射为 blob URL；
+  - `preview.ts`：根据投稿包生成预览，复用共享的摘要和安全 Markdown 渲染规则；本地截图引用只留说明文字；
   - `validate.ts`：调 `validateModels`；
-  - `api.ts`：`me`、`startLogin`、`logout`、`uploadScreenshot`（用 XHR 拿进度）、`submit`、`status`；
-  - `compress.ts`：超过 2MB 的非 GIF 图片用 canvas 转 JPEG，长边不超过 2560，质量 0.9 → 0.6 逐级尝试，直到 ≤2MB；
-  - `store.ts`：sessionStorage 存 `{ plaintext, license, pr }`；截图回执和小缩略图存 localStorage，按 slug 分组，按 `exp` 过期（见 INTERACTION-SUBMIT.md §8）；所有读写包 try/catch；
+  - `api.ts`：`me`、`startLogin`、`logout`、`submit`、`status`；
+  - `store.ts`：草稿（明文、令牌、授权状态、结果）保存在 sessionStorage 的 `bz-submit`；不暂存截图或回执，存储失败不阻断流程；
   - `issue-fallback.ts`：生成预填的 GitHub Issue 链接。
 - 预览安全：
   - 没通过 schema 的字段不进任何 `href` 或 `src`；
@@ -378,3 +368,20 @@ CREATE TABLE IF NOT EXISTS bot_owners (
 - **授权页**：零 scope OAuth App 显示「Public data only · Limited access to your public data」。
 - **CPU**（`wrangler pages deployment tail` 实测，18 次 dryRun 加真实提交）：普通投稿 8–17ms，接近上限的大投稿包（36 万字节、29 个文件）22–44ms，1.9MB 截图上传 64ms，冷启动首个请求 28ms。全部 `outcome: ok`，没有 `exceededCpu`，但都高于免费版名义上的 10ms。流量上来后如果出现 1102 错误，先升级 Workers Paid，再考虑拆接口。
 - **Node 版本**：CI 用 Node 22，没有 `Uint8Array.fromBase64`；依赖这个原生方法的测试要 `skipIf`。workerd 里有原生 `toBase64`，不需要 `nodejs_compat`。
+
+## 附录：截图（决策 43 已去掉）
+
+### 旧页面使用的上传协议 `POST /api/submit/screenshot`
+
+> 2026-11-15 起前端不再调用这个接口（DECISIONS 第 43 条）。接口保留，只为兼容部署时还开着旧页面的人；下面的规格不变。
+
+- 要求登录，否则 401。请求体就是图片原始字节，`Content-Type: image/png|jpeg|webp|gif`；`Content-Length` 必填且 ≤ 2097152，否则 413 `too_large`。读的时候边读边计数，超了立刻中断。
+- 校验文件头，格式必须和 Content-Type 同属一类（jpeg/jpg 视为同类），否则 415。
+- 编码：用原生 `Uint8Array.prototype.toBase64`；没有就在 `wrangler.toml` 加 `compatibility_flags = ["nodejs_compat"]`，改用 `Buffer`。**禁止**用纯 JS 循环做 base64。
+- 拼出 `{"encoding":"base64","content":"…"}`，调 `POST /repos/{repo}/git/blobs`。
+- 不需要自定义请求头（页面用 XHR 读上传进度，同源请求）。槽位顺序由提交时 `screenshots` 数组的顺序决定。
+- 返回 200：`{ ok:true, receipt, sha, size, format, exp }`，`exp` 是回执过期时间（毫秒时间戳，现在 + 24 小时）。
+  - `receipt = base64url(JSON{ t:'r', v:1, uid, sha, size, format, exp: 现在+24h }).base64url(HMAC)`。
+- 限流：每人每天 60 次或 60MB；全站每天 1000 次。
+
+旧前端用 XHR 显示上传进度，超过 2MB 的非 GIF 用 canvas 压成 JPEG；在 localStorage 按 slug 暂存回执和缩略图，按 `exp` 过期，预览用 blob URL 显示图片。这些不是当前前端的实现要求。
