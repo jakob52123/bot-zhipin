@@ -36,5 +36,5 @@
 - 分组（字段名 `category`，9 个：产品、市场、销售、内容、运营、学习、求职、管家、生活）、权限、额度的取值只在 `schema/bot.schema.json` 里定义，代码里通过 `loadEnums()` 读取，不写死。每个分组的颜色和吉祥物在 `theme/color.ts`，一句说明在 `meta.mjs` 的 `CATEGORY_COPY`，改枚举时一起改，单测会核对。
 - 本仓库本地还有 `upstream` 远端（原仓库）。`gh pr create` 一律带 `--repo jakob52123/bot-zhipin`，绝不推送或提 PR 到 upstream。
 - 构建产物里不能有 `_worker.js`（会让 Pages 忽略 `functions/`）。
-- 改了 `schema/` 下任何一份 schema（`bot`、`squad`、`curation`）都要运行 `npm run gen:schema`；`scripts/lib/validate/generated/` 是派生物，不算第二份枚举。
+- 改了 `schema/` 下任何一份 schema（`bot`、`squad`、`curation`、`prompt`、`skill`）都要运行 `npm run gen:schema`；`scripts/lib/validate/generated/` 是派生物，不算第二份枚举。
 - 改了标签页图标的画法（`theme/live/favicon.ts` 的 `FAVICON_DEFAULT`、`FAVICON_FACE`、`faviconSvg`）要运行 `npm run gen:favicon`，把 `site/public/` 下重新生成的三个图标一起提交。

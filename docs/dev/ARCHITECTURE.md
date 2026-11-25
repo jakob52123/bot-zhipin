@@ -32,7 +32,7 @@
 | `site/.vitepress/data/` | 数据加载器：`bots.data`（列表数据：Bot 摘要 + 装饰，不带 `about` 全文）、`squads.data`（小队摘要）、`curation.data`（策展）；三份都由 `bots.mjs` 的 `shelfData()` 一次算出，保证对得上 | 维护者 |
 | `site/squads/[slug].md` + `[slug].paths.mjs` | 小队页的动态路由 `/squads/<slug>` | 维护者 |
 | `site/authors/[login].md` + `[login].paths.mjs` | 作者主页的动态路由 `/authors/<login>`，按小写 GitHub 登录名汇集 Bot 和小队 | 维护者 |
-| `site/.vitepress/theme/components/SquadDetail.vue` | 小队页组件（目前是只渲染数据的占位版） | 维护者 |
+| `site/.vitepress/theme/components/SquadDetail.vue` | 展示成员、分工和交接；支持逐个导入并在本机记录点过哪些成员，展示接线步骤、可复制的组队口令和组队后的第一句话 | 维护者 |
 | `site/.vitepress/theme/vendor/bloub/` | 第三方 MIT 头像引擎，**不要改** | 只能整体升级 |
 | `site/.vitepress/theme/live/` | 单 rAF 时钟 clock.ts、视线 gaze.ts、帧与反应接线；离屏/隐藏/减少动效暂停 | 维护者 |
 | `site/.vitepress/theme/live/favicon.ts` | 标签页图标：随机 Bot、定时变身；纯函数出 SVG，`startFavicon` 在 `theme/index.ts` 里按需加载 | 维护者 |
@@ -41,7 +41,7 @@
 | `site/.vitepress/theme/face.ts` | 官方形状映射、botFace / resolveFace、faceColors 和 seed 回退 | 维护者 |
 | `site/.vitepress/theme/shapes-extra.ts` | 15 种原创径向轮廓，不复制 x.ai 路径 | 维护者 |
 | `site/.vitepress/theme/color.ts` | contrast、darkSwap、buttonColors、botPalette 纯函数配色；分组的颜色和吉祥物（`CATEGORY_COLORS`、`CATEGORY_MASCOTS`） | 维护者 |
-| `site/.vitepress/theme/styles/` | 全站视觉，按区域分七个文件：`tokens.css`（token）、`base.css`（基础部件：按钮、标签、头像砖、区块标题、分段控件、气泡、焦点）、`nav.css`（导航条）、`hero.css`（首屏）、`home.css`（首页区块和卡片）、`detail.css`（详情页）、`misc.css`（404、空状态、弹窗）；`theme/index.ts` 按这个顺序引入。规格见 `INTERACTION.md` §1、§1b | 维护者 |
+| `site/.vitepress/theme/styles/` | 全站视觉，按区域分十个文件：`tokens.css`（token）、`base.css`（基础部件：按钮、标签、头像砖、区块标题、分段控件、气泡、焦点）、`nav.css`（导航条）、`hero.css`（首屏）、`home.css`（首页区块和卡片）、`detail.css`（Bot 详情页）、`squad.css`（小队卡片和小队详情页）、`author.css`（作者主页的头像、资料和作品区）、`misc.css`（404、空状态、弹窗）、`library.css`（Prompt / Skills 的列表和详情页）；`theme/index.ts` 按这个顺序引入。规格见 `INTERACTION.md` §1、§1b | 维护者 |
 | `site/.vitepress/theme/icons.ts` + `components/BzIcon.vue` | 全站唯一一套线性图标：路径数据 + 渲染组件 | 维护者 |
 | `site/.vitepress/theme/enums.data.mjs` | 构建时用 `loadEnums()` 读 schema，把分组枚举（含顺序）给到浏览器；首页分组筛选用 | 维护者 |
 | `site/.vitepress/theme/components/BotShelf.vue` | 首页骨架：读屏播报区、首屏（`HeroBallpit`）、首屏以下的区块（`HomeSections`） | 维护者 |
@@ -65,6 +65,7 @@
 | `migrations/` | D1 表结构 | 维护者 |
 | `tests/unit/` | vitest 单元测试；`tests/fixtures/` 校验器样例；`tests/e2e/` Playwright 真浏览器 | 维护者 |
 | `docs/dev/` | 维护者文档 | 维护者 |
+| `docs/dev/INTERACTION-LIBRARY.md` | Prompt / Skills 的交互规格 | 维护者 |
 | `library/` | 资源库原料：从开源仓库收的分享链接、岗位设定、提示词、技能、定时任务、团队、配方，混合许可（`library/LICENSES.md`）；**不进站点构建**，报告见 `INGEST.md` | 维护者跑 `scripts/ingest/run.mjs` 生成；`annotations/` 是写作模型产出 |
 | `scripts/ingest/` | 入库管线：每个来源一个适配器（`adapters/`），`run.mjs` 去重、许可回溯、安全标记、国内适配、写盘；来源仓库和提交在 `sources.json` | 维护者 |
 
@@ -157,7 +158,7 @@ Prompt 的 `copyright` 是单行原版权行（1–200 字），有 `body` 必�
 
 - 面向用户的文案一律简体中文。
 - **构建不联网**：真脸抓取是维护者独立操作，npm run build 不调用 sync-faces；页面静态导入 faces.json，不在运行时拉脸数据。抓取失败保留旧条目并警告，无数据用原 seed 算法。
-- 活体/真脸/彩色模块的接口与状态标记见 INTERACTION（现为 v4）；版式和视觉规格也在那里，改样式前先读。
+- 活体/真脸/彩色模块的接口与状态标记见 INTERACTION（现为 v5）；版式和视觉规格也在那里，改样式前先读。
 - **导航条不另写组件**：悬浮玻璃导航条是给 VitePress 默认顶栏（`.VPNavBar`）换肤，汉堡菜单、主题开关、社交链接都是默认主题的。默认主题的 scoped 样式特异性高，覆盖规则统一写成 `.Layout .VPNav …` 前缀；背景色通过 `--vp-nav-bg-color` 变量给，不和它的 `:not()` 选择器拼特异性。
 - **文字的祖先不放背景图**：球池的光晕、柔光、悬停层都在独立元素或伪元素里，这样对比度可以按纯色底算（验收脚本会沿祖先链检查）。
 - **版式跟着容器走**：列表卡用 `@container` 按卡片自身宽度切换宽/窄版式，所以同一张卡放进 /submit 的窄预览栏不用另写样式。
