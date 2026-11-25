@@ -369,6 +369,40 @@ test('每一页底部都有页脚：创建人、开源仓库、鸣谢', async ({
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
 })
 
+test('页脚开源项目换行时隐藏行首分隔点，同行的分隔点仍显示', async ({ page }) => {
+  await page.goto('/')
+  const project = page.getByTestId('footer-repo').locator('..')
+  await expect(project.locator('.site-footer-sep')).toHaveCount(2)
+  for (const width of [320, 360, 390, 414, 680, 1024, 1280]) {
+    await page.setViewportSize({ width, height: 900 })
+    await project.scrollIntoViewIfNeeded()
+    const layout = await project.evaluate((dd) => {
+      const { left, right } = dd.getBoundingClientRect()
+      const clipMargin = parseFloat(getComputedStyle(dd).overflowClipMargin) || 0
+      const [repo, license, privacy] = dd.children
+      const licenseText = document.createRange()
+      licenseText.selectNode(license.lastChild)
+      const items = [repo.getBoundingClientRect(), licenseText.getBoundingClientRect(), privacy.lastElementChild.getBoundingClientRect()]
+      const mid = (rect) => (rect.top + rect.bottom) / 2
+      const separators = [...dd.querySelectorAll('.site-footer-sep')].map((sep) => sep.getBoundingClientRect())
+      const starts = items.map((item, i) => i === 0 || Math.abs(mid(item) - mid(items[i - 1])) >= 6)
+      return {
+        indents: items.filter((_, i) => starts[i]).map((item) => Math.abs(item.left - left)),
+        dots: separators.map((dot, i) => starts[i + 1]
+          ? dot.right <= left - clipMargin
+          : dot.width > 0 && dot.left >= items[i].right - 1 && dot.right <= right),
+        overflow: document.documentElement.scrollWidth - innerWidth,
+      }
+    })
+    const atWidth = `${width}px`
+    expect(layout.overflow, atWidth).toBeLessThanOrEqual(0)
+    expect(Math.max(...layout.indents), atWidth).toBeLessThanOrEqual(2)
+    expect(layout.dots, atWidth).toEqual([true, true])
+    if (width === 320) expect(layout.indents.length, atWidth).toBeGreaterThan(1)
+    if (width >= 1024) expect(layout.indents, atWidth).toHaveLength(1)
+  }
+})
+
 test('触屏导入在新页面打开 x.ai 模板', async ({ browser, baseURL }) => {
   const context = await browser.newContext({ hasTouch: true, isMobile: true, baseURL })
   try {

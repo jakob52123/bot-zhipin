@@ -23,7 +23,7 @@ const repoPath = SITE.repo.replace(/^https:\/\/github\.com\//, '')
       <dl class="site-footer-meta">
         <div>
           <dt>{{ FOOTER.repoLabel }}</dt>
-          <dd><a data-testid="footer-repo" :href="SITE.repo" target="_blank" rel="noopener noreferrer">{{ repoPath }}<BzIcon name="arrow-up-right" /></a><span class="site-footer-license"><span class="site-footer-sep">·</span>{{ FOOTER.license }}</span><span class="site-footer-license"><span class="site-footer-sep">·</span><a data-testid="footer-privacy" href="/privacy">{{ FOOTER.privacy }}</a></span></dd>
+          <dd class="site-footer-project"><a data-testid="footer-repo" :href="SITE.repo" target="_blank" rel="noopener noreferrer">{{ repoPath }}<BzIcon name="arrow-up-right" /></a><span class="site-footer-license"><span class="site-footer-sep" aria-hidden="true">·</span>{{ FOOTER.license }}</span><span class="site-footer-license"><span class="site-footer-sep" aria-hidden="true">·</span><a data-testid="footer-privacy" href="/privacy">{{ FOOTER.privacy }}</a></span></dd>
         </div>
         <div>
           <dt>{{ FOOTER.thanksLabel }}</dt>

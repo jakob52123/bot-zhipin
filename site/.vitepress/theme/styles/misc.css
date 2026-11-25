@@ -65,6 +65,13 @@
 .site-footer a { display: inline-flex; align-items: center; gap: 2px; color: var(--bz-text-2); text-decoration: none; transition: color 150ms ease-in-out; }
 .site-footer a:hover { color: var(--bz-ink); }
 .site-footer a svg { width: 12px; height: 12px; }
-.site-footer-sep { margin: 0 var(--bz-sp-2); }
-.site-footer-license { white-space: nowrap; }
+/* 项间距容纳分隔点；行首没有项间距，负边距就把点推到裁切区外。 */
+.site-footer-project {
+  --sep-space: calc(2 * var(--bz-sp-2) + var(--bz-sp-1));
+  display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--sep-space);
+  min-width: 0; overflow: clip; overflow-clip-margin: var(--bz-sp-1);
+}
+.site-footer-project > a { overflow-wrap: anywhere; }
+.site-footer-sep { display: inline-block; width: var(--bz-sp-1); margin: 0 var(--bz-sp-2); text-align: center; }
+.site-footer-license { margin-inline-start: calc(-1 * var(--sep-space)); white-space: nowrap; }
 @media (max-width: 679px) { .site-footer { --bz-gutter: 16px; } }
