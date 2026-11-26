@@ -200,7 +200,7 @@ onBeforeUnmount(() => {
       </header>
       <ul class="roster">
         <li
-          v-for="item in squad.members" :key="item.bot" class="roster-row bz-bot-scope" :class="{ 'is-done': done(item.bot) }" :style="palette(item)"
+          v-for="item in squad.members" :key="item.bot" class="roster-row bz-bot-scope" :class="{ 'is-done': done(item.bot), 'is-custom': item.custom }" :style="palette(item)"
           data-testid="squad-member" :data-slug="item.bot" :data-lead="String(item.lead)"
           @pointerenter="enterRow($event, item.bot)" @pointerleave="leaveRow"
         >
@@ -208,11 +208,10 @@ onBeforeUnmount(() => {
             <BotPortrait :ref="keep(item.bot)" :bot="portrait(item)" :rest="hoveredRow === item.bot ? 'wide' : 'idle'" />
           </div>
           <div class="roster-who">
-            <!-- 新写岗位：名字就是岗位名，没有详情页可链，标「新建」代替岗位标签 -->
+            <!-- 新写岗位：名字就是岗位名，没有详情页可链；虚线头像框表示「还要新建」，不另加文字 -->
             <h3 v-if="item.custom" class="roster-name" data-testid="member-custom-name">{{ item.name }}</h3>
             <h3 v-else class="roster-name"><a data-testid="member-link" :href="item.detailUrl ?? undefined"><BotName :bot="item" /></a></h3>
-            <span v-if="item.custom" class="bz-tag" :class="{ solid: item.lead }" data-testid="member-custom">{{ SQUAD_COPY.custom }}</span>
-            <span v-else-if="item.title" class="bz-tag" :class="{ solid: item.lead }" data-testid="member-title">{{ item.title }}</span>
+            <span v-if="!item.custom && item.title" class="bz-tag" :class="{ solid: item.lead }" data-testid="member-title">{{ item.title }}</span>
             <span v-if="item.optional" class="bz-tag" data-testid="member-optional">{{ SQUAD_COPY.optional }}</span>
           </div>
           <p class="roster-does" data-testid="member-does">{{ item.does }}</p>
@@ -277,10 +276,8 @@ onBeforeUnmount(() => {
               </li>
             </ul>
           </div>
-          <!-- 新写岗位：一段可复制的岗位说明，用户新建一个 Bot 发给它 -->
+          <!-- 新写岗位：和口令同一种消息卡，收件人就是这个岗位，正文是岗位说明；不另写标题和提示 -->
           <div v-else-if="step.kind === 'brief'" class="step-body">
-            <h3 class="step-title">{{ SQUAD_COPY.briefStep(step.member.name) }}</h3>
-            <p class="step-detail">{{ SQUAD_COPY.briefHint }}</p>
             <div class="squad-message" data-testid="squad-brief" :data-slug="step.member.bot">
               <header>
                 <span class="message-to bz-bot-scope" :style="palette(step.member)"><BzIcon name="send" /><SquadStill :bot="portrait(step.member)" /><b>{{ step.member.name }}</b></span>

@@ -171,6 +171,8 @@ img.squad-still { overflow: clip; border: 1px solid var(--bz-hairline); border-r
 .roster-row :is(.roster-tile, .roster-import) { position: relative; z-index: 1; }
 .roster-does { min-width: 0; font-size: var(--bz-fs-body); line-height: var(--bz-lh-body); color: var(--bz-text-2); text-wrap: pretty; }
 .roster-import[data-done="true"] > svg { color: var(--bz-success); }
+/* 新写岗位：虚线框表示还要新建，复制过岗位说明以后变实线 */
+.roster-row.is-custom:not(.is-done) .roster-tile { border-style: dashed; border-color: var(--bz-border-strong); }
 .roster-row.is-missing .roster-name, .roster-row.is-missing .roster-does { color: var(--bz-text-3); }
 .roster-row.is-missing .roster-tile { border-style: dashed; border-color: var(--bz-border-strong); background: transparent; box-shadow: none; cursor: default; }
 .roster-row.is-missing .roster-tile::before { display: none; }

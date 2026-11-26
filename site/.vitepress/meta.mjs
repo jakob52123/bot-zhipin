@@ -155,11 +155,8 @@ export const SQUAD_COPY = {
   // 只给读屏：每个成员前面那个打勾按钮的名字
   importedLabel: '已导入',
   readyLabel: '已就位',
-  // 新写岗位：货架上没有，用户在 Grok Bot 里新建一个 Bot，把岗位说明发给它
-  custom: '新建',
+  // 新写岗位的按钮：复制它的岗位说明
   copyBrief: '复制岗位说明',
-  briefStep: (title) => `新建「${title}」`,
-  briefHint: '在 Grok Bot 里新建一个 Bot，把下面这段岗位说明发给它。',
   copy: '复制',
   copied: '已复制',
   quota: '额度',
