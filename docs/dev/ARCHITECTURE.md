@@ -10,7 +10,7 @@
 |---|---|---|
 | `bots/<slug>/` | Bot 本体和卡片信息 | 投稿者 |
 | `bots/_template/` | 投稿模板 | 维护者 |
-| `squads/<slug>/squad.yaml` | 小队：成员（货架上的 Bot）、队长、分工、交接、接线步骤。一支队只有这一个文件 | 投稿者 |
+| `squads/<slug>/squad.yaml` | 小队：成员（货架上的 Bot，或现场新写的岗位：`role` + `brief`）、队长、分工、交接、接线步骤。一支队只有这一个文件 | 投稿者 |
 | `curation/shelf.yaml` | 策展：首页主推、推荐排序、专题、编辑点评 | **只有维护者** |
 | `prompts/<slug>.yaml`、`skills/<slug>.yaml` | Prompt、Skill 收录条目，格式与枚举取自 `schema/{prompt,skill}.schema.json` | **只有维护者** |
 | `schema/bot.schema.json` | bot.yaml 的 JSON Schema，**分组（`category`）、权限、额度的枚举唯一真源** | 维护者 |
@@ -164,7 +164,7 @@ Prompt 的 `copyright` 是单行原版权行（1–200 字），有 `body` 必�
 - **版式跟着容器走**：列表卡用 `@container` 按卡片自身宽度切换宽/窄版式，所以同一张卡放进 /submit 的窄预览栏不用另写样式。
 - 页面路径：首页 `/`，详情页 `/bots/<slug>`，小队页 `/squads/<slug>`（小队可以和 Bot 同名，路由不同）。
 - **小队和策展放在哪**：默认是仓库里的 `squads/` 和 `curation/shelf.yaml`。规则是「跟着 Bot 目录取兄弟目录」：`<Bot 目录的上级>/squads`、`<上级>/curation/shelf.yaml`，所以只设 `BOTS_DIR=tests/fixtures/bots` 就会一起用 fixtures 的小队和策展；要单独指定用环境变量 `SQUADS_DIR`、`CURATION_FILE`。目录或文件不存在就当空，不报错。
-- **引用必须落在货架上**：小队成员、策展里的 slug 都要是货架上的 Bot，`npm run validate` 会拦；下架一个被引用的 Bot 要同时改小队和策展。网站构建时再兜一层底：对不上的那一项丢掉并打印警告，成员不到 2 个的小队不出页面。
+- **引用必须落在货架上**：小队里写 `bot` 的成员、策展里的 slug 都要是货架上的 Bot（写 `role` 的新写岗位不查货架，决策 75），`npm run validate` 会拦；下架一个被引用的 Bot 要同时改小队和策展。网站构建时再兜一层底：对不上的那一项丢掉并打印警告，成员不到 2 个的小队不出页面。
 - **分组**：字段名是 `category`，界面和文档里叫「分组」，意思是「这个 Bot 干的是哪一行」。一共 9 个：产品、市场、销售、内容、运营、学习、求职、管家、生活（决策 38）。取值和顺序只在 `schema/bot.schema.json`；颜色和吉祥物在 `theme/color.ts`，一句说明在 `meta.mjs` 的 `CATEGORY_COPY`，单测保证它们和枚举一个不多、一个不少。
 - **Bot 的名字**：`name` 是原名（和 x.ai 模板页上的一致，不翻译），`nameZh` 是可选的中文叫法（决策 41）。写了中文叫法的，全站以它称呼这个 Bot，原名跟在后面；排序、读屏、网页标题也按它来；搜索两个名字都认。规矩在 `scripts/lib/bot-name.mjs`，显示规格在 `INTERACTION.md` §3.4。新写页面时不要直接输出 `bot.name`，用 `BotName.vue` 或 `displayName()`。
 - **开发热更新**：`bot-watch.mjs` 同时监听 Bot 目录、小队目录和策展文件，哪一处变了都重启 dev server 刷新数据和动态路由。

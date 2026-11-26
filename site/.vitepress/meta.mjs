@@ -150,8 +150,13 @@ export const SQUAD_COPY = {
   missing: '未收录',
   import: '导入',
   imported: (done, total) => `已导入 ${done} / ${total}`,
+  // 队里有新写岗位时，进度不只算导入，也算新建
+  ready: (done, total) => `已就位 ${done} / ${total}`,
   // 只给读屏：每个成员前面那个打勾按钮的名字
   importedLabel: '已导入',
+  readyLabel: '已就位',
+  // 新写岗位的按钮：复制它的岗位说明
+  copyBrief: '复制岗位说明',
   copy: '复制',
   copied: '已复制',
   quota: '额度',

@@ -1,4 +1,4 @@
-# 小队编制表：成员都是货架上的普通 Bot，这里只是一张把它们连起来的表。字段规则见 V5-DATA §5（schema/squad.schema.json）。
+# 小队编制表：这支队的成员都是货架上的普通 Bot，这里只是一张把它们连起来的表。字段规则见 V5-DATA §5（schema/squad.schema.json）。
 # flow 里每一条都对得上成员配置里的一句原文。整套配合还没在 Grok Bot 里实测，拿不准的地方写了「没实测」。
 slug: one-person-marketing
 name: 一个人的市场部

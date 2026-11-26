@@ -53,7 +53,7 @@
 | `bot_copy_prompt` | 复制安装提示词，复制结果出来之后发 | 该 Bot | `from` `card`/`detail`；`ok` |
 | `bot_copy_starter` | 复制一条开场白，结果出来之后发 | 该 Bot | `index` 第几条（从 0 起）；`ok` |
 | `squad_start` | 点「开始组队」 | 小队 | — |
-| `squad_copy` | 复制口令或试一句 | 小队 | `which` `kickoff`/`tryout`；`ok` |
+| `squad_copy` | 复制口令、试一句或新写岗位的岗位说明 | 小队 | `which` `kickoff`/`tryout`/`brief`；`ok` |
 | `prompt_copy` | 复制 Prompt | 该 Prompt | `from`：`list` 列表行标题旁 · `list_open` 列表展开后的工具条 · `detail_side` 详情侧栏 · `detail_body` 详情正文区 · `detail_en` 英文原文区；`lang` `translated` 复制的是本站中文译文 / `original` 复制的是原文；`ok` |
 | `prompt_open` | 列表里展开一条长文（收起不记） | 该 Prompt | — |
 | `skill_copy` | 复制 Skill 安装命令、正文或作者示例里的提问 | 该 Skill | `what` `command`/`body`/`example`；`agent` 命令对应的工具名；`index` 第几条命令或第几个示例；`ok` |

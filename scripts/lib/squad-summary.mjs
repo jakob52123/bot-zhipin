@@ -16,16 +16,25 @@ const MEMBER_FIELDS = ['name', 'nameZh', 'tagline', 'category', 'detailUrl', 'te
  * bots：slug → Bot 摘要（summarizeBot 的结果）的 Map。
  * enums：loadEnums() 的结果，用它的顺序给权限排序、比较额度高低。
  * 不在货架上的成员会被丢掉，引用它的 flow 也一起丢掉；丢了谁由调用方对比 data.members 得知。
+ * 新写岗位（写 role 不写 bot）不查货架：bot 字段放它的 role 代号（flow、队长、页面都按这个认人），custom 为 true，
+ * 名字就是岗位名，没有详情页、模板链接、额度和权限，brief 是用户新建 Bot 时要发给它的岗位说明。
  */
 export function summarizeSquad(squad, { bots, enums }) {
   const data = squad.data || {}
   const author = data.author || {}
   const members = rows(data.members).flatMap((member) => {
+    const base = { title: text(member.title), does: text(member.does), lead: member.lead === true, optional: member.optional === true }
+    if (typeof member.bot !== 'string' && text(member.role)) {
+      return [{
+        bot: member.role, ...base, custom: true, brief: text(member.brief),
+        ...Object.fromEntries(MEMBER_FIELDS.map((field) => [field, null])),
+        name: text(member.title) ?? member.role, permissions: [], prerequisites: [],
+      }]
+    }
     const bot = bots.get(member.bot)
     if (!bot) return []
     return [{
-      bot: member.bot, title: text(member.title), does: text(member.does),
-      lead: member.lead === true, optional: member.optional === true,
+      bot: member.bot, ...base, custom: false, brief: null,
       ...Object.fromEntries(MEMBER_FIELDS.map((field) => [field, bot[field]])),
     }]
   })
@@ -57,7 +66,8 @@ export function summarizeSquad(squad, { bots, enums }) {
     missing: rows(data.missing).map((item) => ({ name: text(item.name), does: text(item.does) })),
     quota: {
       max: costs.length ? enums.quotaCosts[Math.max(...costs)] : null,
-      perMember: members.map((member) => ({ bot: member.bot, quotaCost: member.quotaCost })),
+      // 新写岗位没有标称额度，不列进来（它的消耗看用户新建时怎么配）。
+      perMember: members.filter((member) => !member.custom).map((member) => ({ bot: member.bot, quotaCost: member.quotaCost })),
     },
     permissions: enums.permissions.filter((permission) => members.some((member) => uses(member, permission)))
       .map((permission) => ({ permission, bots: members.filter((member) => uses(member, permission)).map((member) => member.bot) })),

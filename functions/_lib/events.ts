@@ -43,7 +43,7 @@ export const EVENTS = {
   bot_copy_prompt: { from: oneOf('card', 'detail'), ok: bool }, // ok=false 表示剪贴板不可用、退回了手动复制
   bot_copy_starter: { index: int(0, 50), ok: bool },
   squad_start: {}, // 点「开始组队」
-  squad_copy: { which: oneOf('kickoff', 'tryout'), ok: bool },
+  squad_copy: { which: oneOf('kickoff', 'tryout', 'brief'), ok: bool }, // brief：新写岗位的岗位说明
   prompt_copy: {
     from: oneOf('list', 'list_open', 'detail_side', 'detail_body', 'detail_en'),
     lang: oneOf('translated', 'original'), // translated = 复制的是本站中文译文；original = 复制的是原文

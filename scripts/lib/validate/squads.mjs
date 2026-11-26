@@ -1,4 +1,4 @@
-// 小队和策展的校验内核：纯函数，不读盘。两者都只引用货架上已有的 Bot，所以要传入货架的 slug 列表。
+// 小队和策展的校验内核：纯函数，不读盘。两者引用货架上的 Bot 时要核对，所以要传入货架的 slug 列表（小队成员也可以是现场新写的岗位）。
 import { validate as checkSquad, schema as squadSchema } from './generated/squad-schema.mjs'
 import { validate as checkCuration, schema as curationSchema } from './generated/curation-schema.mjs'
 import { reportSchemaErrors } from './schema.mjs'
@@ -84,25 +84,42 @@ export function validateSquads(squads, { botSlugs = [], now = new Date() } = {})
       }
       validateDate({ data, yamlPath: name }, now, report)
 
-      const members = rows(data.members).filter(([member]) => typeof member.bot === 'string')
+      // 成员二选一：货架上的 Bot 写 bot；现场新写的岗位写 role 和 brief。flow 里用 bot 或 role 指人。
+      for (const [member, index] of rows(data.members)) {
+        const hasBot = typeof member.bot === 'string', hasRole = typeof member.role === 'string'
+        if (hasBot && hasRole) {
+          report(name, `members.${index}`, `${nth(index)}成员同时写了 bot 和 role`, '货架上的 Bot 只写 bot；要现场新建的岗位只写 role 和 brief，删掉另一个。')
+        } else if (!hasBot && !hasRole) {
+          report(name, `members.${index}`, `${nth(index)}成员既没写 bot 也没写 role`, '货架上的 Bot 写 bot: <slug>；货架上没有的岗位写 role: <代号> 和 brief: <岗位说明>。')
+        }
+        if (hasRole && !hasBot && typeof member.brief !== 'string') {
+          report(name, `members.${index}.brief`, `${nth(index)}成员是新写岗位（role: ${member.role}），但没有 brief`, '加一段 brief：写清这个岗位的职责、输入、产出、不做什么、什么时候找用户，用户会把它发给新建的 Bot。')
+        }
+        if (hasBot && !hasRole && typeof member.brief === 'string') {
+          report(name, `members.${index}.brief`, `${nth(index)}成员是货架上的 ${member.bot}，不用写 brief`, '删掉 brief；岗位说明只给 role 写的新岗位用，货架上的 Bot 用它自己的配置。')
+        }
+      }
+      const members = rows(data.members).map(([member, index]) => [member, index, typeof member.bot === 'string' ? member.bot : member.role])
+        .filter(([, , key]) => typeof key === 'string')
       const position = new Map()
-      for (const [member, index] of members) {
-        const where = `members.${index}.bot`
-        if (member.bot === YOU) {
-          report(name, where, `${nth(index)}成员写的是 ${YOU}；${YOU} 在 flow 里代表用户本人，不能当成员`, '成员只能是货架上的 Bot，把这一项删掉；用户本人不用写进 members。')
+      for (const [member, index, key] of members) {
+        const isBot = typeof member.bot === 'string'
+        const where = `members.${index}.${isBot ? 'bot' : 'role'}`
+        if (key === YOU) {
+          report(name, where, `${nth(index)}成员写的是 ${YOU}；${YOU} 在 flow 里代表用户本人，不能当成员`, '把这一项删掉，或者换一个代号；用户本人不用写进 members。')
           continue
         }
-        if (position.has(member.bot)) {
-          report(name, where, `成员 ${member.bot} 写了两次（${nth(position.get(member.bot))}和${nth(index)}）`, '每个 Bot 在一支队里只能出现一次，删掉重复的那一项。')
+        if (position.has(key)) {
+          report(name, where, `成员 ${key} 写了两次（${nth(position.get(key))}和${nth(index)}）`, '每个成员在一支队里只能出现一次；新写岗位的 role 也不能和别的成员重名。')
           continue
         }
-        position.set(member.bot, index)
-        if (!shelf.has(member.bot)) {
-          report(name, where, `${nth(index)}成员 ${member.bot} 不在货架上`, '改成 bots/ 里已有的 slug；这个 Bot 还没上架的话，先把它投稿上架，再编进小队。')
+        position.set(key, index)
+        if (isBot && !shelf.has(key)) {
+          report(name, where, `${nth(index)}成员 ${key} 不在货架上`, `改成 bots/ 里已有的 slug；货架上没有这个 Bot 的话，改写成新岗位：把 bot 换成 role: ${key}，再加一段 brief 写岗位说明。`)
         }
       }
 
-      const leads = members.filter(([member]) => member.lead === true).map(([member]) => member.bot)
+      const leads = members.filter(([member]) => member.lead === true).map(([, , key]) => key)
       if (leads.length > 1) {
         report(name, 'members', `有 ${leads.length} 个成员标了 lead: true（${leads.join('、')}），一支队只能有一个队长`, '只在队长那一项保留 lead: true，其余的删掉这一行。')
       } else if (data.formation === '带队' && !leads.length && members.length) {
@@ -113,7 +130,7 @@ export function validateSquads(squads, { botSlugs = [], now = new Date() } = {})
         for (const side of ['from', 'to']) {
           const who = step[side]
           if (typeof who !== 'string' || who === YOU || position.has(who)) continue
-          report(name, `flow.${index}.${side}`, `flow 第 ${index + 1} 条的 ${side} 写的是 ${who}，它不是这支队的成员`, `改成 members 里某个成员的 slug；代表用户本人就写 ${YOU}。`)
+          report(name, `flow.${index}.${side}`, `flow 第 ${index + 1} 条的 ${side} 写的是 ${who}，它不是这支队的成员`, `改成 members 里某个成员的 bot 或 role；代表用户本人就写 ${YOU}。`)
         }
         if (typeof step.from === 'string' && step.from === step.to) {
           report(name, `flow.${index}`, `flow 第 ${index + 1} 条的 from 和 to 都是 ${step.from}，自己交给自己没有意义`, '改成两个不同的成员，或者删掉这一条。')

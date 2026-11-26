@@ -27,7 +27,9 @@ import { displayName } from '../../../../scripts/lib/bot-name.mjs'
 
 interface Member {
   bot: string; name: string; nameZh?: string | null; title: string | null; does: string | null; lead: boolean; optional: boolean
-  avatar: string | null; detailUrl: string; templateUrl: string; quotaCost: string
+  avatar: string | null; detailUrl: string | null; templateUrl: string | null; quotaCost: string | null
+  // 新写岗位：bot 是它的 role 代号，没有详情页和模板，brief 是新建时发给它的岗位说明
+  custom?: boolean; brief?: string | null
 }
 interface Squad {
   slug: string; name: string; tagline: string; formation: string; origin: string; addedAt: string
@@ -66,7 +68,7 @@ function mark(slug: string, value: boolean) {
 }
 function toggle(slug: string) {
   mark(slug, !done(slug))
-  void announce(SQUAD_COPY.imported(imported.value.length, slugs.value.length))
+  void announce(progress(imported.value.length, slugs.value.length))
 }
 function sync(event: StorageEvent) {
   if (event.key === squadStorageKey(props.squad.slug)) imported.value = parseImported(event.newValue, slugs.value)
@@ -103,21 +105,28 @@ const copied = ref<string | null>(null)
 const blocks = new Map<string, HTMLElement>()
 const keepBlock = (key: string) => (el: unknown) => { if (el) blocks.set(key, el as HTMLElement); else blocks.delete(key) }
 let timer: ReturnType<typeof setTimeout> | undefined
-async function copyText(key: 'kickoff' | 'tryout') {
-  const text = props.squad[key]
+// key 是 kickoff、tryout，或者 brief:<成员代号>（新写岗位的岗位说明，复制成功就算这个成员就位了）
+async function copyText(key: string) {
+  const owner = key.startsWith('brief:') ? bySlug.value.get(key.slice(6)) : undefined
+  const text = owner ? owner.brief : key === 'kickoff' || key === 'tryout' ? props.squad[key] : null
   if (!text) return
+  const which = owner ? 'brief' : key as 'kickoff' | 'tryout'
   if (key === 'kickoff') reportClick(props.squad.slug, 'kickoff')
   try {
     await navigator.clipboard.writeText(text)
-    track('squad_copy', { which: key, ok: true })
+    track('squad_copy', { which, ok: true })
     copied.value = key
-    if (leader.value) photo.value?.play(leader.value.bot, { state: 'wink' })
+    if (owner) {
+      photo.value?.play(owner.bot, { state: 'comet' })
+      rowPortraits.get(owner.bot)?.play({ state: 'comet' })
+      mark(owner.bot, true)
+    } else if (leader.value) photo.value?.play(leader.value.bot, { state: 'wink' })
     void announce(SQUAD_COPY.copied)
     clearTimeout(timer)
     timer = setTimeout(() => { copied.value = null }, 1800)
   } catch {
     // 复制不了（权限、旧浏览器）：把这段文字选中，按 ⌘C / Ctrl+C 就能带走。
-    track('squad_copy', { which: key, ok: false })
+    track('squad_copy', { which, ok: false })
     const block = blocks.get(key)
     if (!block) return
     const range = document.createRange()
@@ -128,9 +137,13 @@ async function copyText(key: 'kickoff' | 'tryout') {
   }
 }
 
-/* ---------- 步骤编号：导入 → 接线 → 口令 → 试一句 ---------- */
+/* ---------- 步骤编号：导入 → 新建新写岗位（每个一步）→ 接线 → 口令 → 试一句 ---------- */
+const hasCustom = computed(() => props.squad.members.some((item) => item.custom))
+const progress = (count: number, total: number) => hasCustom.value ? SQUAD_COPY.ready(count, total) : SQUAD_COPY.imported(count, total)
+type Step = { kind: 'import' } | { kind: 'brief'; key: string; member: Member } | { kind: 'setup'; title: string | null; detail: string | null } | { kind: 'kickoff' | 'tryout'; text: string }
 const steps = computed(() => {
-  const list: ({ kind: 'import' } | { kind: 'setup'; title: string | null; detail: string | null } | { kind: 'kickoff' | 'tryout'; text: string })[] = [{ kind: 'import' }]
+  const list: Step[] = [{ kind: 'import' }]
+  for (const item of props.squad.members) if (item.custom && item.brief) list.push({ kind: 'brief', key: `brief:${item.bot}`, member: item })
   for (const step of props.squad.setup) list.push({ kind: 'setup', ...step })
   if (props.squad.kickoff) list.push({ kind: 'kickoff', text: props.squad.kickoff })
   if (props.squad.tryout) list.push({ kind: 'tryout', text: props.squad.tryout })
@@ -187,7 +200,7 @@ onBeforeUnmount(() => {
       </header>
       <ul class="roster">
         <li
-          v-for="item in squad.members" :key="item.bot" class="roster-row bz-bot-scope" :class="{ 'is-done': done(item.bot) }" :style="palette(item)"
+          v-for="item in squad.members" :key="item.bot" class="roster-row bz-bot-scope" :class="{ 'is-done': done(item.bot), 'is-custom': item.custom }" :style="palette(item)"
           data-testid="squad-member" :data-slug="item.bot" :data-lead="String(item.lead)"
           @pointerenter="enterRow($event, item.bot)" @pointerleave="leaveRow"
         >
@@ -195,13 +208,19 @@ onBeforeUnmount(() => {
             <BotPortrait :ref="keep(item.bot)" :bot="portrait(item)" :rest="hoveredRow === item.bot ? 'wide' : 'idle'" />
           </div>
           <div class="roster-who">
-            <h3 class="roster-name"><a data-testid="member-link" :href="item.detailUrl"><BotName :bot="item" /></a></h3>
-            <span v-if="item.title" class="bz-tag" :class="{ solid: item.lead }" data-testid="member-title">{{ item.title }}</span>
+            <!-- 新写岗位：名字就是岗位名，没有详情页可链；虚线头像框表示「还要新建」，不另加文字 -->
+            <h3 v-if="item.custom" class="roster-name" data-testid="member-custom-name">{{ item.name }}</h3>
+            <h3 v-else class="roster-name"><a data-testid="member-link" :href="item.detailUrl ?? undefined"><BotName :bot="item" /></a></h3>
+            <span v-if="!item.custom && item.title" class="bz-tag" :class="{ solid: item.lead }" data-testid="member-title">{{ item.title }}</span>
             <span v-if="item.optional" class="bz-tag" data-testid="member-optional">{{ SQUAD_COPY.optional }}</span>
           </div>
           <p class="roster-does" data-testid="member-does">{{ item.does }}</p>
+          <button
+            v-if="item.custom" type="button" class="bz-btn sm roster-import" data-testid="member-brief" :data-done="String(done(item.bot))"
+            @click="copyText(`brief:${item.bot}`)"
+          ><BzIcon :name="copied === `brief:${item.bot}` || done(item.bot) ? 'check' : 'copy'" />{{ copied === `brief:${item.bot}` ? SQUAD_COPY.copied : SQUAD_COPY.copyBrief }}<span class="bz-sr-only">：{{ item.name }}</span></button>
           <a
-            class="bz-btn sm roster-import" data-testid="member-import" :data-done="String(done(item.bot))"
+            v-else class="bz-btn sm roster-import" data-testid="member-import" :data-done="String(done(item.bot))"
             :href="item.templateUrl" target="_blank" rel="noopener noreferrer" data-track-own @click="importMember(item.bot, 'squad_lineup', $event)" @auxclick.middle="importMember(item.bot, 'squad_lineup', $event)"
           ><BzIcon :name="done(item.bot) ? 'check' : 'arrow-up-right'" />{{ SQUAD_COPY.import }}<span class="bz-sr-only">{{ displayName(item) }}（在新标签页打开）</span></a>
         </li>
@@ -234,7 +253,7 @@ onBeforeUnmount(() => {
           <span class="step-no" aria-hidden="true"><BzIcon v-if="step.kind === 'import' && imported.length === slugs.length" name="check" /><template v-else>{{ index + 1 }}</template></span>
           <div v-if="step.kind === 'import'" class="step-body">
             <div class="setup-progress">
-              <p class="step-title" data-testid="setup-progress">{{ SQUAD_COPY.imported(imported.length, slugs.length) }}</p>
+              <p class="step-title" data-testid="setup-progress">{{ progress(imported.length, slugs.length) }}</p>
               <div class="progress-track" aria-hidden="true">
                 <i v-for="item in squad.members" :key="item.bot" class="bz-bot-scope" :class="{ on: done(item.bot) }" :style="palette(item)" />
               </div>
@@ -243,15 +262,31 @@ onBeforeUnmount(() => {
               <li v-for="item in squad.members" :key="item.bot" class="setup-member bz-bot-scope" :class="{ 'is-done': done(item.bot) }" :style="palette(item)" data-testid="setup-member" :data-slug="item.bot">
                 <button
                   type="button" class="member-check" data-testid="member-check" :aria-pressed="done(item.bot)"
-                  :aria-label="`${displayName(item)} ${SQUAD_COPY.importedLabel}`" @click="toggle(item.bot)"
+                  :aria-label="`${displayName(item)} ${hasCustom ? SQUAD_COPY.readyLabel : SQUAD_COPY.importedLabel}`" @click="toggle(item.bot)"
                 ><BzIcon name="check" :size="12" /></button>
                 <SquadStill :bot="portrait(item)" />
-                <span class="setup-member-name"><BotName :bot="item" small /></span>
+                <span v-if="item.custom" class="setup-member-name">{{ item.name }}</span>
+                <span v-else class="setup-member-name"><BotName :bot="item" small /></span>
+                <button
+                  v-if="item.custom" type="button" class="bz-btn sm ghost" data-testid="setup-brief" @click="copyText(`brief:${item.bot}`)"
+                ><BzIcon :name="copied === `brief:${item.bot}` ? 'check' : 'copy'" />{{ copied === `brief:${item.bot}` ? SQUAD_COPY.copied : SQUAD_COPY.copyBrief }}<span class="bz-sr-only">：{{ item.name }}</span></button>
                 <a
-                  class="bz-btn sm ghost" data-testid="setup-import" :href="item.templateUrl" target="_blank" rel="noopener noreferrer" data-track-own @click="importMember(item.bot, 'squad_setup', $event)" @auxclick.middle="importMember(item.bot, 'squad_setup', $event)"
+                  v-else class="bz-btn sm ghost" data-testid="setup-import" :href="item.templateUrl" target="_blank" rel="noopener noreferrer" data-track-own @click="importMember(item.bot, 'squad_setup', $event)" @auxclick.middle="importMember(item.bot, 'squad_setup', $event)"
                 ><BzIcon name="arrow-up-right" />{{ SQUAD_COPY.import }}<span class="bz-sr-only">{{ displayName(item) }}（在新标签页打开）</span></a>
               </li>
             </ul>
+          </div>
+          <!-- 新写岗位：和口令同一种消息卡，收件人就是这个岗位，正文是岗位说明；不另写标题和提示 -->
+          <div v-else-if="step.kind === 'brief'" class="step-body">
+            <div class="squad-message" data-testid="squad-brief" :data-slug="step.member.bot">
+              <header>
+                <span class="message-to bz-bot-scope" :style="palette(step.member)"><BzIcon name="send" /><SquadStill :bot="portrait(step.member)" /><b>{{ step.member.name }}</b></span>
+                <button type="button" class="bz-btn sm ghost" :class="{ copied: copied === step.key }" data-testid="copy-brief" @click="copyText(step.key)">
+                  <BzIcon :name="copied === step.key ? 'check' : 'copy'" />{{ copied === step.key ? SQUAD_COPY.copied : SQUAD_COPY.copy }}
+                </button>
+              </header>
+              <p :ref="keepBlock(step.key)" class="message-text">{{ step.member.brief }}</p>
+            </div>
           </div>
           <div v-else-if="step.kind === 'setup'" class="step-body">
             <h3 class="step-title">{{ step.title }}</h3>
