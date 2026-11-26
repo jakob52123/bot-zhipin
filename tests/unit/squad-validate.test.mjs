@@ -74,7 +74,6 @@ describe('schema', () => {
     ['addedAt 格式不对', (d) => { d.addedAt = '2026/11/10' }, 'addedAt', '要求 YYYY-MM-DD'],
     ['只有 1 个成员', (d) => { d.members = d.members.slice(0, 1) }, 'members', '要求至少 2 项'],
     ['有 7 个成员', (d) => { d.members = shelf.map((bot, i) => ({ bot, title: '成员', does: '负责一部分的活', lead: i === 0 })) }, 'members', '最多 6 项'],
-    ['成员缺 bot', (d) => { delete d.members[1].bot }, 'members.1.bot', '缺少必填字段 members.1.bot'],
     ['成员缺 title', (d) => { delete d.members[1].title }, 'members.1.title', '缺少必填字段 members.1.title'],
     ['成员缺 does', (d) => { delete d.members[1].does }, 'members.1.does', '缺少必填字段 members.1.does'],
     ['成员 title 超过 12 字', (d) => { d.members[1].title = long(13) }, 'members.1.title', '要求 2～12 个字符'],
@@ -133,7 +132,7 @@ describe('成员', () => {
     const errors = at((d) => { d.members[2].bot = 'ghost-bot' }, 'members.2.bot')
     expect(errors).toHaveLength(1)
     expect(errors[0].problem).toBe('第 3 个成员 ghost-bot 不在货架上')
-    expect(errors[0].fix).toContain('先把它投稿上架')
+    expect(errors[0].fix).toContain('role: ghost-bot')
   })
   it('货架为空时每个成员都报', () => {
     expect(validateSquads([model()], { now }).errors.map((error) => error.where)).toEqual(['members.0.bot', 'members.1.bot', 'members.2.bot'])
@@ -306,5 +305,49 @@ describe('读盘适配器', () => {
     expect(isPublicSquad(model(() => {}, 'other-folder'))).toBe(false)
     expect(isPublicSquad(buildSquadModel('test-squad', { raw: 'name: [坏' }))).toBe(false)
     expect(isPublicSquad(model((d) => { d.slug = 'Bad_Slug' }, 'Bad_Slug'))).toBe(false)
+  })
+})
+
+describe('新写岗位（role + brief）', () => {
+  const brief = '职责：开工前判断材料够不够。输入：任务卡和原句。产出：已知事实和缺口两列。不做什么：不替用户补信息。'
+  const custom = (d) => { d.members[2] = { role: 'material-checker', title: '材料核对员', does: '开工前列明已知事实与缺口', brief } }
+  it('货架上没有的岗位写 role 和 brief 就通过；flow 用 role 指它', () => {
+    expect(run((d) => {
+      custom(d)
+      d.flow = [{ from: 'lead-bot', to: 'material-checker', what: '编号任务卡' }, { from: 'material-checker', to: YOU, what: '缺口表' }]
+    })).toEqual({ errors: [], warnings: [] })
+  })
+  it('全是新写岗位、队长也是新写的也通过', () => {
+    expect(run((d) => {
+      d.members = [
+        { role: 'boss', title: '总管', does: '定范围、派活、收件', lead: true, brief },
+        { role: 'writer', title: '执行编辑', does: '按任务卡交一版稿', brief },
+      ]
+      d.flow = [{ from: 'boss', to: 'writer', what: '任务卡' }]
+    })).toEqual({ errors: [], warnings: [] })
+  })
+  it('bot 和 role 都没写', () => {
+    const errors = at((d) => { delete d.members[1].bot }, 'members.1')
+    expect(errors).toHaveLength(1)
+    expect(errors[0].problem).toBe('第 2 个成员既没写 bot 也没写 role')
+  })
+  it('bot 和 role 同时写', () => {
+    const errors = at((d) => { d.members[1].role = 'helper'; d.members[1].brief = brief }, 'members.1')
+    expect(errors[0].problem).toBe('第 2 个成员同时写了 bot 和 role')
+  })
+  it('role 没有 brief', () => {
+    const errors = at((d) => { custom(d); delete d.members[2].brief }, 'members.2.brief')
+    expect(errors[0].problem).toContain('没有 brief')
+  })
+  it('货架 Bot 写了 brief', () => {
+    const errors = at((d) => { d.members[1].brief = brief }, 'members.1.brief')
+    expect(errors[0].problem).toContain('不用写 brief')
+  })
+  it('role 和别的成员重名、或者写成 you', () => {
+    expect(at((d) => { custom(d); d.members[2].role = 'second-bot' }, 'members.2.role')[0].problem).toContain('写了两次')
+    expect(at((d) => { custom(d); d.members[2].role = YOU }, 'members.2.role')[0].problem).toContain('不能当成员')
+  })
+  it('brief 太短被 schema 拦下', () => {
+    expect(at((d) => { custom(d); d.members[2].brief = '太短' }, 'members.2.brief')).toHaveLength(1)
   })
 })

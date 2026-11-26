@@ -63,14 +63,14 @@ describe('小队摘要', () => {
   it('成员并入对应 Bot 摘要的 12 个字段（含中文叫法），不多带别的', () => {
     const [lead, second, third] = summary().members
     expect(lead).toEqual({
-      bot: 'lead-bot', title: '队长', does: '把活分给两位帮手', lead: true, optional: false,
+      bot: 'lead-bot', title: '队长', does: '把活分给两位帮手', lead: true, optional: false, custom: false, brief: null,
       name: '名字-lead-bot', nameZh: '带队的', tagline: '介绍-lead-bot', category: '产品', detailUrl: '/bots/lead-bot', templateUrl: 'https://x.ai/bot/lead-bot',
       quotaCost: '中', permissions: ['联网', '云电脑文件'], prerequisites: ['一个飞书账号', '无'], avatar: '/bot-assets/lead-bot/avatar.png',
       needsAccount: false, selfRunning: false,
     })
     expect(second).toMatchObject({ bot: 'second-bot', nameZh: null, lead: false, optional: false, category: '市场', quotaCost: '高', needsAccount: true, selfRunning: true })
     expect(third).toMatchObject({ bot: 'third-bot', title: '替补', lead: false, optional: true })
-    for (const member of [lead, second, third]) expect(Object.keys(member)).toHaveLength(17)
+    for (const member of [lead, second, third]) expect(Object.keys(member)).toHaveLength(19)
   })
   it('leader 是队长的 slug；没有队长是 null', () => {
     expect(summary().leader).toBe('lead-bot')
@@ -136,6 +136,23 @@ describe('小队摘要', () => {
     expect(result.permissions.map((item) => item.permission)).toEqual(['云电脑文件', '联网'])
     expect(result.prerequisites).toEqual([{ bot: 'lead-bot', items: ['一个飞书账号'] }])
   })
+  it('新写岗位：不查货架，bot 放 role 代号，名字是岗位名，带 brief；不算额度和权限，flow 照留', () => {
+    const brief = '职责：开工前判断材料够不够。输入：任务卡和原句。产出：已知事实和缺口两列。'
+    const result = summary((d) => {
+      d.members[2] = { role: 'unused-bot', title: '材料核对员', does: '开工前列明已知事实与缺口', brief }
+      d.flow = [{ from: 'lead-bot', to: 'unused-bot', what: '任务卡' }, { from: 'unused-bot', to: 'you', what: '缺口表' }]
+    })
+    const custom = result.members[2]
+    expect(custom).toMatchObject({
+      bot: 'unused-bot', custom: true, brief, name: '材料核对员', nameZh: null, title: '材料核对员',
+      detailUrl: null, templateUrl: null, quotaCost: null, permissions: [], prerequisites: [], avatar: null,
+    })
+    expect(Object.keys(custom)).toHaveLength(19)
+    expect(result.flow).toHaveLength(2)
+    expect(result.quota.perMember.map((item) => item.bot)).toEqual(['lead-bot', 'second-bot'])
+    // 代号碰巧和货架上的 unused-bot 同名，也不能拿那个 Bot 的权限（代我发消息）。
+    expect(result.permissions.map((item) => item.permission)).not.toContain('代我发消息')
+  })
   it('纯函数：不修改传入的小队和 Bot 摘要，同样输入得到同样输出', () => {
     const bots = shelf()
     const squad = buildSquadModel('test-squad', { raw: YAML.stringify(base()) })
@@ -166,6 +183,12 @@ describe('网站数据：bots、squads、curation 三份对得上', () => {
       expect(squad.detailUrl).toBe(`/squads/${squad.slug}`)
       expect(squad.members.length).toBeGreaterThanOrEqual(2)
       for (const member of squad.members) {
+        // 新写岗位不在货架上，只核对它带着岗位说明、没挂到同名 Bot 上。
+        if (member.custom) {
+          expect(member.brief, `${squad.slug} 的新岗位 ${member.bot}`).toBeTruthy()
+          expect(by.get(member.bot)?.squads ?? []).not.toContainEqual(expect.objectContaining({ slug: squad.slug }))
+          continue
+        }
         const source = by.get(member.bot)
         expect(source, `${squad.slug} 的成员 ${member.bot}`).toBeDefined()
         for (const field of ['name', 'tagline', 'category', 'detailUrl', 'templateUrl', 'quotaCost', 'permissions', 'prerequisites', 'avatar', 'needsAccount', 'selfRunning']) {

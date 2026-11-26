@@ -102,7 +102,8 @@ export function decorateSummary(summary, { curation = null, squads = [] } = {}) 
     editorNote: notes && Object.hasOwn(notes, summary.slug) ? notes[summary.slug] : null,
     pick: pick >= 0 ? pick : null,
     squads: squads.flatMap((squad) => {
-      const member = squad.members.find((item) => item.bot === summary.slug)
+      // 新写岗位的代号可能和某个货架 Bot 同名，不算这个 Bot 进了队。
+      const member = squad.members.find((item) => item.bot === summary.slug && !item.custom)
       return member ? [{ slug: squad.slug, name: squad.name, title: member.title, lead: member.lead, detailUrl: squad.detailUrl }] : []
     }),
   }

@@ -1,0 +1,45 @@
+# 小队编制表：两个货架上的 Bot 加两个现场新写的岗位（role + brief，决策 75）。整套配合还没在 Grok Bot 里实测。
+slug: contract-delivery
+name: 契约交付组
+tagline: 把一句需求变成可逐条验收的小任务
+formation: 带队
+origin: 本站编队
+author: {name: Bot直聘编辑部}
+addedAt: '2026-11-25'
+members:
+  - {bot: pm-bot, title: 任务总管, does: 确定范围并写明每条验收条件, lead: true}
+  - role: material-checker
+    title: 材料核对员
+    does: 在开工前列明已知事实与缺口
+    brief: |
+      职责：在编辑动笔前判断材料够不够。
+      输入：总管编号的任务卡和用户给的原句。
+      产出：一列已知事实，一列缺口，每项带原句编号。
+      不做什么：不替用户补地点，也不替编辑写通知。
+      什么时候必须找用户：缺口会改变验收条件，且不能用「待定」交稿时。
+  - {bot: writing-bot, title: 执行编辑, does: 只按任务卡交一版指定稿件}
+  - role: independent-reviewer
+    title: 独立复核员
+    does: 逐条比对条件并说明退回原因
+    brief: |
+      职责：用同一版任务卡复核别人的交件。
+      输入：原始材料、验收条件和带编号的稿件。
+      产出：每条条件对应一句证据，以及通过或退回的决定。
+      不做什么：不代改后给自己签字，不声称测试过代码。
+      什么时候必须找用户：两条验收条件互相冲突或需要决定取舍时。
+flow:
+  - {from: pm-bot, to: material-checker, what: 编号任务卡}
+  - {from: material-checker, to: writing-bot, what: 事实与缺口表}
+  - {from: writing-bot, to: independent-reviewer, what: 通知草稿与任务卡}
+  - {from: independent-reviewer, to: pm-bot, what: 逐条验收记录}
+  - {from: pm-bot, to: you, what: 退回项或待批稿}
+setup:
+  - {title: 导入两个现成成员, detail: 分别导入需求撰写员和改稿编辑，各自走完首次设置；需求撰写员的晨间提醒先关掉。}
+  - {title: 新建两个岗位, detail: 在 Grok Bot 里新建两个 Bot，把上面的岗位说明分别发给它们，名字就叫材料核对员、独立复核员。}
+  - {title: 拉进同一个群, detail: 四个成员拉进一个群，让每个人回一句自己负责什么；收不到的那一棒先由你手动转一次。}
+kickoff: 今天只做一单，请先写任务卡，再分给材料核对员、执行编辑和独立复核员，各回一句接单，找不到人就把简报给我。
+tryout: 虚构的读书会周六十点开始，地点还没定。只交两句通知，时间要准确、地点别编。
+notes:
+  - 复核员不能自己批自己。编辑交的稿只能由独立复核员逐条比对后放行，用户给的范围之外的真实发送另外问你。
+  - 四个成员都只用 Grok，不连外部账号。任务卡、事实表都写在群里，不复制本机文件或账号配置。
+  - 总管能不能直接调度其他成员没实测。找不到人时它会把简报交给你转。

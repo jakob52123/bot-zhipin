@@ -37,7 +37,7 @@ fork PR 只要改了 `bots/<slug>/`、`squads/<slug>/squad.yaml` 以外的任何
 
 小队只能走 fork + PR，PR 里应该只有 `squads/<slug>/squad.yaml` 一个文件（多了别的文件范围检查会失败）。
 
-1. 等 `validate-and-build` 通过：机器已经查过格式、成员都在货架上且不重复、`flow` 两头都是成员或 `you`、「带队」恰好一个队长。
+1. 等 `validate-and-build` 通过：机器已经查过格式、写 `bot` 的成员都在货架上、写 `role` 的都有岗位说明、成员不重复、`flow` 两头都是成员或 `you`、「带队」恰好一个队长。
 2. 人工核对：分工和交接是不是真的跑得通（对照各成员的详情页）；`kickoff`、`setup` 里有没有密钥、内部链接；`origin` 写得对不对（投稿人自己编的写「社区投稿」，照搬原作者成套发布的写「原作者成套」）。
 3. `author.github` 不是 PR 作者时，CI 会报错；只有 `origin: 原作者成套` 放行，但会打 ⚠ 警告。警告会作为黄色注释出现在 PR 的 Files changed 和 CI 运行摘要里。看到警告要核对：作者确实是这支队的原设计者。合并后它会出现在该作者的作者主页上，主页昵称也可能被这条的 `author.name` 换掉。
 4. 已有小队被修改时，`addedAt` 和 `author.github` 不能变（CI 会拦）。

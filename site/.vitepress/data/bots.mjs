@@ -49,11 +49,12 @@ export function shelfData(bots = readBots(), { squads = readSquads(), curation =
   const enums = loadEnums()
   const squadList = squads.flatMap((squad) => {
     const summary = summarizeSquad(squad, { bots: bySlug, enums })
-    const wanted = Array.isArray(squad.data.members) ? squad.data.members.map((member) => member?.bot) : []
+    // 只核对写了 bot 的成员；写 role 的是新写岗位，本来就不在货架上。
+    const wanted = Array.isArray(squad.data.members) ? squad.data.members.filter((member) => typeof member?.bot === 'string').map((member) => member.bot) : []
     const dropped = wanted.filter((slug) => !bySlug.has(slug))
     if (dropped.length) console.warn(`[小队] ${squad.yamlRel}：成员 ${dropped.join('、')} 不在货架上，已从页面上去掉`)
     if (summary.members.length >= 2) return [summary]
-    console.warn(`[小队] 跳过 ${squad.yamlRel}：在货架上的成员不到 2 个`)
+    console.warn(`[小队] 跳过 ${squad.yamlRel}：能显示的成员不到 2 个`)
     return []
   })
   const resolved = resolveCuration(curation, new Set(bySlug.keys()), (where, slug) => {
