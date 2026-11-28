@@ -5,7 +5,7 @@
   "description": "一个 Bot 的卡片和详情页信息。枚举值是全站唯一真源，网站和校验器都从这里读。",
   "type": "object",
   "additionalProperties": false,
-  "required": ["slug", "name", "tagline", "category", "author", "templateUrl", "addedAt", "prerequisites", "quotaCost", "permissions"],
+  "required": ["slug", "name", "tagline", "category", "author", "addedAt", "prerequisites", "quotaCost", "permissions"],
   "properties": {
     "slug": {
       "description": "和文件夹同名。只能用小写字母、数字和短横线，2 到 40 个字符。",
@@ -35,8 +35,12 @@
         "url": { "description": "作者主页，只有外部收录且没有 GitHub 时才用", "type": "string", "pattern": "^https://" }
       }
     },
+    "platform": {
+      "description": "在哪个平台上用（可选）。不写就是 Grok Bot；OpenBot 的 Bot 没有模板链接，不写 templateUrl，装法是复制安装提示词，一定要有 ROLE.md",
+      "enum": ["Grok Bot", "OpenBot"]
+    },
     "templateUrl": {
-      "description": "x.ai 模板分享链接",
+      "description": "x.ai 模板分享链接。Grok Bot 必填，OpenBot 的 Bot 不写",
       "type": "string",
       "pattern": "^https://x\\.ai/bot/[A-Za-z0-9_-]+$"
     },
@@ -62,7 +66,7 @@
       "description": "会用到的权限，从固定列表里选；一个都不用就写 []",
       "type": "array",
       "uniqueItems": true,
-      "items": { "enum": ["云电脑文件", "浏览器 Cookie", "外部账号", "联网", "定时自动运行", "代我发消息"] }
+      "items": { "enum": ["云电脑文件", "本机文件", "浏览器 Cookie", "外部账号", "联网", "定时自动运行", "代我发消息"] }
     },
     "pitch": {
       "description": "自荐台词（可选）。写一句，或写 1 到 3 句互不相同的话；每句 2 到 30 个字",
@@ -147,14 +151,32 @@
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
     },
-    "external": { "description": "外部收录（可选）。为 true 时 ROLE.md、DESIGN.md、skills、截图都不强制。", "type": "boolean" }
+    "projectUrl": {
+      "description": "源项目地址（可选）。Bot 是照着某个开源项目做的时候填，比如它的 GitHub 仓库",
+      "type": "string",
+      "maxLength": 200,
+      "pattern": "^https://[^\\s<>\"]+$"
+    },
+    "external": { "description": "外部收录（可选）。为 true 时 ROLE.md、DESIGN.md、skills、截图都不强制；OpenBot 的 Bot 仍然要有 ROLE.md。", "type": "boolean" }
   },
-  "if": {
-    "properties": { "external": { "const": true } },
-    "required": ["external"]
-  },
-  "then": {},
-  "else": {
-    "properties": { "author": { "type": "object", "required": ["name", "github"] } }
-  }
+  "allOf": [
+    {
+      "if": {
+        "properties": { "external": { "const": true } },
+        "required": ["external"]
+      },
+      "then": {},
+      "else": {
+        "properties": { "author": { "type": "object", "required": ["name", "github"] } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "platform": { "const": "OpenBot" } },
+        "required": ["platform"]
+      },
+      "then": {},
+      "else": { "required": ["templateUrl"] }
+    }
+  ]
 }

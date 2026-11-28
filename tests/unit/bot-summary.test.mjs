@@ -16,7 +16,7 @@ it('摘要完整字段和默认值稳定', () => {
   expect(summarizeBot(model())).toEqual({
     slug: 'demo', name: '示例', nameZh: null, tagline: '一句真实介绍', category: undefined,
     author: { name: '作者', github: 'demo', url: null, link: 'https://github.com/demo', page: '/authors/demo' },
-    templateUrl: 'https://x.ai/bot/demo', addedAt: undefined, prerequisites: ['无'], quotaCost: undefined,
+    platform: 'Grok Bot', templateUrl: 'https://x.ai/bot/demo', projectUrl: null, repoFiles: true, addedAt: undefined, prerequisites: ['无'], quotaCost: undefined,
     permissions: [], needsAccount: false, selfRunning: false, pitch: null, pitches: [], about: null,
     forkedFrom: null, forkedFromName: null, forkedFromNameZh: null, external: false, official: false,
     avatar: null, screenshots: [], skills: [], hasRoutines: false, routinesUrl: null, detailUrl: '/bots/demo',
@@ -85,7 +85,7 @@ it('默认资产名编码、改编名称兜底、不修改模型', () => {
   expect(JSON.stringify(bot)).toBe(before)
 })
 it('缺失 YAML 的预览摘要仍可创建', () => {
-  expect(summarizeBot(buildBotModel('demo', { files: [] })).templateUrl).toBeUndefined()
+  expect(summarizeBot(buildBotModel('demo', { files: [] })).templateUrl).toBeNull()
 })
 it('文案导出与 schema 枚举和 explanations 完全一致', () => {
   const enums = loadEnums()

@@ -1,4 +1,4 @@
-import { SITE } from '../../site/.vitepress/meta.mjs'
+import { SITE, installPrompt } from '../../site/.vitepress/meta.mjs'
 import { absoluteUrl } from './share.mjs'
 
 export function buildCatalog({ bots }) {
@@ -25,7 +25,10 @@ export function buildCatalog({ bots }) {
       cn: { fit: bot.about?.cnFit ?? null, note: bot.about?.cnNote ?? null },
       starters: bot.about?.starters ?? [],
       editorNote: bot.editorNote ?? null,
-      templateUrl: bot.templateUrl,
+      platform: bot.platform ?? 'Grok Bot',
+      templateUrl: bot.templateUrl ?? null,
+      installPrompt: bot.platform === 'OpenBot' ? installPrompt(bot.slug, bot.platform) : null,
+      projectUrl: bot.projectUrl ?? null,
       detailUrl: absoluteUrl(bot.detailUrl),
       author: { name: bot.author.name, url: bot.author.link ?? null },
       external: bot.external,

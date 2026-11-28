@@ -9,7 +9,7 @@ Bot 直聘是一个中文 AI 资源货架，收了三样东西：
 
 - **Prompt**：能直接复制去用的提示词，英文的配了中文版
 - **Skill**：给 Claude Code、Codex、Cursor 这类 agent 装的技能
-- **Grok Bot**：x.ai Grok Bot App 里一键导入的岗位模板
+- **Bot**：大多是 x.ai Grok Bot App 里一键导入的岗位模板；也有少数 OpenBot 的 Bot，没有模板链接，靠一段安装提示词装
 
 所有数据都来自线上的 `https://bot.jiachengbo.com/data/`，用本目录的 `scripts/find.py` 来查，要能联网；在沙箱里连不上时，请用户放行网络。本 skill 的两个文件也能直接下载：`https://bot.jiachengbo.com/skill/bot-zhipin/SKILL.md` 和 `https://bot.jiachengbo.com/skill/bot-zhipin/scripts/find.py`，按这个目录结构放进你的 skills 目录就装好了。
 
@@ -27,7 +27,7 @@ Bot 直聘是一个中文 AI 资源货架，收了三样东西：
 2. **挑给用户看。** 从结果里挑 3～5 条真对得上的，每条写：
    - 标题
    - 一句话用途
-   - 类型（Prompt、Skill 或 Grok Bot）
+   - 类型（Prompt、Skill、Grok Bot 或 OpenBot 的 Bot）
    - 详情页链接
 
    用户再挑。明显只有一条对得上，就别让用户挑了，直接用那条。
@@ -58,6 +58,10 @@ Bot 直聘是一个中文 AI 资源货架，收了三样东西：
 - 给出模板页链接，告诉用户：在 Grok Bot App 里打开这个链接就能导入，不是在当前这个 agent 里装。
 - 附上「导入后可以直接发给它」的开场白；有权限、额度、国内能不能用的说明，也一起带上。
 
+**OpenBot 的 Bot**（详情里「类型」写着 OpenBot）
+- 没有模板链接。把详情最后的「安装提示词」原样放进代码块交给用户，告诉他：发给 OpenBot 里任意一个 Agent，它会新建一个 Agent 来当这个 Bot。你自己不是 OpenBot 的话，不要替用户装。
+- 同样附上开场白、权限、额度、导入前要准备的东西；有「源项目」的一起给出。
+
 ## 规矩
 
 - **只推荐库里真有的条目。** 搜不到先加 `--refresh` 用最新索引再搜一次，还是没有就照实说「Bot 直聘上暂时没有」，再给用户几个入口自己翻：
@@ -82,6 +86,6 @@ Windows 的 PowerShell 里写 `curl.exe -s ...`，或者用 `Invoke-RestMethod h
 
 - Prompt：`text`（要给用户的正文）、`usage`、`models`、`images`（效果图）、`credit`；给英文原文 `body` 时署名用 `creditOriginal`
 - Skill：`install`（数组，每项有 `agent`、`command`、`note`）、`requires`、`examples`（作者给的示例）、`credit`
-- Grok Bot：`templateUrl`、`starters`、`credit`
+- Bot：`platform`（`Grok Bot` 或 `OpenBot`）、`starters`、`credit`；Grok Bot 用 `templateUrl` 导入，OpenBot 的没有模板链接，把 `installPrompt` 原样发给 OpenBot 里任意一个 Agent
 
 索引一共二三百条，别整份塞给用户，筛完再说。

@@ -262,7 +262,8 @@ def search(args):
             extra.append('仅摘要')
         if kind == 'prompt' and item.get('lang') == 'en':
             extra.append('英文原文')
-        print('{}. [{}] {}/{}  {} · {}'.format(number, KIND_LABEL.get(kind, kind), kind, item.get('slug'), title, ' · '.join(x for x in extra if x)))
+        label = 'OpenBot' if kind == 'bot' and item.get('platform') == 'OpenBot' else KIND_LABEL.get(kind, kind)
+        print('{}. [{}] {}/{}  {} · {}'.format(number, label, kind, item.get('slug'), title, ' · '.join(x for x in extra if x)))
         print('   {}  {}'.format(item.get('purpose', ''), item.get('detailUrl', '')))
 
 
@@ -356,9 +357,15 @@ def show_bot(data):
     if data.get('name') and data['name'] != head:
         head += '（{}）'.format(data['name'])
     print('# ' + head)
-    print('类型：Grok Bot 模板 · {}'.format(data.get('category', '')))
+    openbot = data.get('platform') == 'OpenBot'
+    print('类型：{} · {}'.format('OpenBot 的 Bot' if openbot else 'Grok Bot 模板', data.get('category', '')))
     print('一句话：' + data.get('tagline', ''))
-    print('导入：在 Grok Bot App 里打开这个模板页导入 → ' + data.get('templateUrl', ''))
+    if openbot:
+        print('导入：没有模板链接，把最后那段「安装提示词」发给 OpenBot 里任意一个 Agent')
+    else:
+        print('导入：在 Grok Bot App 里打开这个模板页导入 → ' + (data.get('templateUrl') or ''))
+    if data.get('projectUrl'):
+        print('源项目：' + data['projectUrl'])
     print('详情页：' + data.get('detailUrl', ''))
     facts = []
     if data.get('permissions'):
@@ -374,6 +381,8 @@ def show_bot(data):
         section('导入后可以直接发给它', '\n'.join('- ' + line for line in data['starters']))
     section('编辑点评', data.get('editorNote'))
     section('署名', data.get('credit'))
+    if openbot:
+        section('安装提示词', data.get('installPrompt'))
 
 
 def get(args):

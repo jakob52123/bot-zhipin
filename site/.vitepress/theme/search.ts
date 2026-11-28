@@ -10,6 +10,8 @@ export interface SearchableBot {
   tagline?: string | null
   category?: string | null
   author?: { name?: string | null } | null
+  /** 平台。只有 OpenBot 当一个别名（搜「openbot」能找到，搜「bot」不会因为它冒出来）；Grok Bot 是货架默认，不算，免得搜 grok 冒出整个货架。 */
+  platform?: string | null
   /** 额外的可搜文字，分量和介绍一样（小队用它放成员的名字和队内岗位） */
   keywords?: Texts
   /**
@@ -107,7 +109,7 @@ export function searchBots<T extends SearchableBot>(bots: readonly T[], query: s
   for (const bot of bots) {
     const names = [fold(bot.nameZh), fold(bot.name)].filter(Boolean)
     const titles = [...names, fold(bot.category), fold(bot.author?.name)]
-    const aliases = (bot.aliases ?? []).map(alias).filter(({ whole }) => whole)
+    const aliases = [...(bot.aliases ?? []), bot.platform === 'OpenBot' ? 'openbot' : null].map(alias).filter(({ whole }) => whole)
     const middle = [fold(bot.tagline), fold(bot.slug), ...(bot.keywords ?? []).map(fold)]
     const extra = (bot.extra ?? []).map(fold)
     const high = (word: string) => inAny(titles, word) || inAlias(aliases, word)

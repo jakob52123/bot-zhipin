@@ -114,14 +114,23 @@ export const submitPrompt = () =>
 /** 某个 Bot 在仓库里的地址，安装提示词里用 */
 export const botRepoUrl = (slug) => `${SITE.repo}/tree/${SITE.branch}/bots/${slug}`
 
-/** 「复制安装提示词」按钮复制的内容。文字由产品定稿，改动前先确认。 */
-export const installPrompt = (slug) =>
-  [
+/**
+ * 「复制安装提示词」按钮复制的内容。文字由产品定稿，改动前先确认。
+ * Grok Bot：发给自己的 Grok Bot，让它把技能装到自己身上。
+ * OpenBot：发给 OpenBot 里随便哪个 Agent，让它新建一个 Agent 来当这个 Bot（OpenBot 没有模板链接，靠这段话装）。
+ */
+export const installPrompt = (slug, platform = 'Grok Bot') =>
+  (platform === 'OpenBot' ? [
+    `请帮我在 OpenBot 里新建一个 Agent，照这个 Bot 来装：${botRepoUrl(slug)}`,
+    '1. 先读里面的 bot.yaml、ROLE.md、skills/ 下的所有 SKILL.md 和 routines.md，用几句话告诉我它会做什么、需要哪些权限、会访问哪些外部服务、要我先准备什么。',
+    '2. 等我确认后再新建：名字和简介用 bot.yaml 的 name 和 tagline，把 ROLE.md 写进它的 Instructions；把每个技能存进本地技能库并装给它；routines.md 里的定时任务先建好但不开，等我说开再开。',
+    '3. 装完告诉我装了什么、第一句话该跟它说什么。',
+  ] : [
     `请帮我安装一个 Bot：${botRepoUrl(slug)}`,
     '1. 先读里面的 ROLE.md、skills/ 下的所有 SKILL.md 和 routines.md，用几句话告诉我它会做什么、需要哪些权限、会访问哪些外部服务。',
     '2. 等我确认后，把这些技能保存为你的技能，按 routines.md 创建定时任务，并记住 ROLE.md 里的岗位职责。',
     '3. 装完告诉我装了什么、怎么用。',
-  ].join('\n')
+  ]).join('\n')
 
 /** 没写 pitch 的 Bot，悬停时从这里随机挑一句。都是本站自己写的。 */
 export const DEFAULT_PITCHES = [

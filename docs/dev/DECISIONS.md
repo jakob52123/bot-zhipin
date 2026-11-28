@@ -2,6 +2,16 @@
 
 按时间倒序追加。每条写：决定了什么、为什么、放弃了什么。
 
+## 2026-11-28 货架支持 OpenBot
+
+76. **Bot 多一个可选字段 `platform`（`Grok Bot` / `OpenBot`，不写就是 Grok Bot）；OpenBot 的 Bot 没有模板链接，装法是「复制安装提示词」，第一期只由维护者收录**（用户 2026-11-28 提：「我们的 bot直聘能不能支持 openbot 啊」，起因是要收录开源项目 video-clip-sop（百搭剪辑），用户说「openbot 也行」）。原因：这个项目只能跑在用户自己的 Apple 芯片 Mac 上（ChatCut、本机转写、本地工作台、launchd），Grok Bot 的云电脑跑不了；OpenBot 就在用户的电脑上，能原样跑。查过 OpenBot 没有模板链接，也没有导出、分享 Agent 的功能，所以装法只能是一段话：发给 OpenBot 里任意一个 Agent，由它新建 Agent、装技能、建定时任务。
+    - **数据**：`platform` 枚举只在 schema；`templateUrl` 改成「Grok Bot 必填」（`allOf` 里按 platform 分支），OpenBot 写了 `templateUrl` / `templateVersion` 报错。OpenBot 的 Bot 一定要有 `ROLE.md`，外部收录的也一样（安装提示词靠它），技能可以没有。权限新加「本机文件」，只给 OpenBot；「云电脑文件」只给 Grok Bot，校验互拦。「浏览器 Cookie」的说明改成不分平台的「会用浏览器里已登录网站的登录状态」。新加可选 `projectUrl`（源项目），写成 `tree/<提交号>` 时每天的上游核对按 Skill 那套比对（决策 74 的口径：装的时候拉最新版，我们记着审过的那次）。
+    - **界面**：只多一个「OpenBot」平台标签（只挂 OpenBot 的，Grok Bot 是默认不挂）和侧栏一行「项目」；没有「导入」，「复制安装提示词」升成主按钮，主推卡也用它。不加解释句子（第 37 条）。规格见 `INTERACTION.md` §3.5。
+    - **其他出口**：`catalog.json`、`/data/bots/*.json` 多 `platform`、`installPrompt`（OpenBot 才有）、`projectUrl`，`templateUrl` 可能是 `null`；`llms.txt` 在 OpenBot 的条目后标「（OpenBot）」；bot-zhipin skill 对 OpenBot 的条目给安装提示词，不给模板链接；⌘K 面板搜「openbot」能找到，「openbot」按别名算，搜「bot」不会把它们顶上来。埋点不加事件，`bot_copy_prompt.from` 加 `featured`。
+    - **暂时不做**：网站投稿收 OpenBot（服务端报「网站投稿暂时只收 Grok Bot」，Issue 投稿照旧走维护者审核）；小队编进 OpenBot 的 Bot（小队是一个 Grok Bot 群，校验会拦）；按平台筛选。
+    - **放弃的做法**：把项目改写成 Grok Bot（丢掉 ChatCut、本机转写、工作台，等于另做一个）；只在主推里放一张外链卡（不进货架、搜不到、没有详情页）；把它当 Skill 收（它是一整套流程加脚本，不是一份 SKILL.md）；所有 Bot 都挂平台标签（85 个 Grok Bot 全挂一样的字，等于没说）。
+    - 第一个上架的是百搭剪辑（`video-clip-sop`，作者呆胶布，MIT），本周主推里替下额度省省助手（三个里热度最低），用户 2026-11-28 定。
+
 ## 2026-11-25 隐私加固：记下审过的版本、每天核对上游
 
 74. **收录项自己记着「审过的版本」，每天核对上游；搜索词原文只留 90 天；加隐私说明页；导入处露出「会代你发消息」；投稿里的疑似隐私打提醒**（用户 2026-11-25 定）。起因是有人说本站会造成隐私泄露。评估结论：网站本身不存 IP 和浏览器标识、不用 cookie 认人、没有第三方脚本，这个说法站不住；站得住的是「从这里导入的东西我们管不住」。Bot 的内容由作者在 x.ai 维护，导入拿到的是作者当时的版本；Skill 的安装命令拉作者仓库的最新版。用户原话：「其实可以都做，你基于第一性原理进行分析，找到最优雅、最干净的改动方法」。

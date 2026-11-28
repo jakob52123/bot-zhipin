@@ -6,6 +6,7 @@ import { curationFileFor, loadCuration } from '../load-curation.mjs'
 import { isPublicBot } from '../public-bot.mjs'
 import { validateModels } from './core.mjs'
 import { validateCuration, validateSquads } from './squads.mjs'
+import { OPENBOT, platformOf } from '../platform.mjs'
 import { loadEntries, libraryDirFor } from '../load-prompts-skills.mjs'
 import { validateLibrary } from './library.mjs'
 export { formatResult } from './core.mjs'
@@ -42,8 +43,9 @@ export function validateAll({ botsDir = BOTS_DIR, squadsDir, curationFile, promp
   const prompts = loadEntries('prompt', promptsDir ? resolve(promptsDir) : libraryDirFor('prompt', botsDir))
   const skills = loadEntries('skill', skillsDir ? resolve(skillsDir) : libraryDirFor('skill', botsDir))
   const botSlugs = result.bots.filter(isPublicBot).map((bot) => bot.slug)
+  const openbotSlugs = result.bots.filter((bot) => isPublicBot(bot) && platformOf(bot.data) === OPENBOT).map((bot) => bot.slug)
   const parts = [
-    validateSquads(squads, { botSlugs, now }), validateCuration(curation, { botSlugs }),
+    validateSquads(squads, { botSlugs, openbotSlugs, now }), validateCuration(curation, { botSlugs }),
     validateLibrary('prompt', prompts, { now }), validateLibrary('skill', skills, { now }),
   ]
   return {

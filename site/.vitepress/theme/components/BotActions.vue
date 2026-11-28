@@ -3,6 +3,7 @@ import { computed, inject, nextTick, onBeforeUnmount, ref } from 'vue'
 import { previewMode } from '../submit/preview-mode'
 const preview = inject(previewMode, false)
 import { installPrompt } from '../../meta.mjs'
+import { OPENBOT } from '../../../../scripts/lib/platform.mjs'
 import { track } from '../track'
 import { reportClick } from '../heat'
 import { announce, announceCopy } from '../announce'
@@ -12,7 +13,20 @@ import BzIcon from './BzIcon.vue'
 
 // compact：列表卡用小号按钮（「导入」+ 幽灵款的复制）；详情页侧栏用实心的「一键导入」+ 次级的复制，都撑满一行。
 // 按钮一律「图标 + 动词」：导入是右上箭头（会开新标签页，读屏另有一句），复制是 copy，复制成功换成对勾。
-const props = defineProps<{ bot: { slug: string; templateUrl: string; external: boolean; trial?: string | null; about?: { trial?: string | null; starters?: string[] } | null }; compact?: boolean }>()
+// OpenBot 的 Bot 没有模板链接，没有「导入」：「复制安装提示词」升成主按钮（列表卡实心小号、详情页实心撑满）。
+// from：埋点里记从哪儿点的，不传就按 compact 算（列表卡 / 详情页）；主推卡传 featured。
+const props = defineProps<{
+  bot: {
+    slug: string; templateUrl: string | null; external: boolean; platform?: string; repoFiles?: boolean
+    trial?: string | null; about?: { trial?: string | null; starters?: string[] } | null
+  }
+  compact?: boolean
+  from?: 'card' | 'featured' | 'detail'
+}>()
+const openbot = computed(() => props.bot.platform === OPENBOT)
+// 仓库里有没有这个 Bot 的文件：投稿预览的旧数据没有 repoFiles 时，照旧按「作者投稿才有」算。
+const repoFiles = computed(() => props.bot.repoFiles ?? !props.bot.external)
+const prompt = computed(() => installPrompt(props.bot.slug, openbot.value ? OPENBOT : undefined))
 
 // 导入：复制试跑句（没写就用第一条开场白），再直接唤起 App 的导入窗口。
 // x.ai 模板页 https://x.ai/bot/<id> 上的「Add to Grok Bot」就是 grokbot://app/v1/bot-template?id=<id>，这里直接用它，省掉英文中转页。
@@ -25,7 +39,7 @@ const trial = computed(() => {
   return Array.isArray(about.starters) && typeof about.starters[0] === 'string' ? about.starters[0] : ''
 })
 const appUrl = computed(() => {
-  const id = props.bot.templateUrl.split('/bot/')[1]
+  const id = props.bot.templateUrl?.split('/bot/')[1]
   return id ? `grokbot://app/v1/bot-template?id=${id}` : ''
 })
 const launched = ref(false)
@@ -53,12 +67,12 @@ const dialog = ref<HTMLDialogElement>()
 const field = ref<HTMLTextAreaElement>()
 const copyButton = ref<HTMLButtonElement>()
 let timer: ReturnType<typeof setTimeout> | undefined
-const from = computed(() => props.compact ? 'card' : 'detail')
+const from = computed(() => props.from ?? (props.compact ? 'card' : 'detail'))
 async function copyPrompt() {
   if (preview) return
   reportClick(props.bot.slug, 'prompt')
   try {
-    await navigator.clipboard.writeText(installPrompt(props.bot.slug))
+    await navigator.clipboard.writeText(prompt.value)
     track('bot_copy_prompt', { from: from.value, ok: true }, { slug: props.bot.slug })
     copied.value = true
     play({ state: 'wink' })
@@ -136,17 +150,19 @@ onBeforeUnmount(() => { clearTimeout(timer); clearTimeout(launchTimer); clearTim
 </script>
 
 <template>
-  <div class="bot-actions">
-    <button v-if="preview" data-testid="btn-import" type="button" class="bz-btn action-import" :class="compact ? 'sm' : 'primary block'" aria-disabled="true"><BzIcon name="arrow-up-right" />{{ compact ? '导入' : '一键导入' }}</button>
-    <a v-else data-testid="btn-import" class="bz-btn action-import" :class="[compact ? 'sm' : 'primary block', { copied: launched }]" :href="bot.templateUrl" target="_blank" rel="noopener noreferrer" data-track-own @click="importBot" @auxclick.middle="importBot"><BzIcon :name="launched ? 'check' : 'arrow-up-right'" />{{ launched ? (compact ? '已复制' : '已复制开场白') : (compact ? '导入' : '一键导入') }}<span v-if="!launched" class="bz-sr-only">（打开 Grok Bot）</span></a>
-    <a v-if="getApp && !preview" data-testid="get-app" class="bz-btn ghost get-app" :class="compact ? 'sm' : 'block'" :href="GET_APP_URL" target="_blank" rel="noopener noreferrer"><BzIcon name="arrow-up-right" />{{ compact ? '下载 Grok Bot' : '没装 Grok Bot？去下载' }}<span class="bz-sr-only">（在新标签页打开）</span></a>
-    <button v-if="!bot.external" ref="copyButton" data-testid="btn-prompt" type="button" class="bz-btn action-prompt" :class="[compact ? 'ghost sm' : 'block', { copied }]" :aria-disabled="preview || undefined" @click="copyPrompt"><BzIcon :name="copied ? 'check' : 'copy'" />{{ copied ? '已复制' : '复制安装提示词' }}</button>
+  <div class="bot-actions" :data-platform="openbot ? 'openbot' : undefined">
+    <template v-if="!openbot">
+      <button v-if="preview" data-testid="btn-import" type="button" class="bz-btn action-import" :class="compact ? 'sm' : 'primary block'" aria-disabled="true"><BzIcon name="arrow-up-right" />{{ compact ? '导入' : '一键导入' }}</button>
+      <a v-else data-testid="btn-import" class="bz-btn action-import" :class="[compact ? 'sm' : 'primary block', { copied: launched }]" :href="bot.templateUrl ?? undefined" target="_blank" rel="noopener noreferrer" data-track-own @click="importBot" @auxclick.middle="importBot"><BzIcon :name="launched ? 'check' : 'arrow-up-right'" />{{ launched ? (compact ? '已复制' : '已复制开场白') : (compact ? '导入' : '一键导入') }}<span v-if="!launched" class="bz-sr-only">（打开 Grok Bot）</span></a>
+      <a v-if="getApp && !preview" data-testid="get-app" class="bz-btn ghost get-app" :class="compact ? 'sm' : 'block'" :href="GET_APP_URL" target="_blank" rel="noopener noreferrer"><BzIcon name="arrow-up-right" />{{ compact ? '下载 Grok Bot' : '没装 Grok Bot？去下载' }}<span class="bz-sr-only">（在新标签页打开）</span></a>
+    </template>
+    <button v-if="repoFiles" ref="copyButton" data-testid="btn-prompt" type="button" class="bz-btn action-prompt" :class="[openbot ? (compact ? 'sm' : 'primary block') : (compact ? 'ghost sm' : 'block'), { copied }]" :aria-disabled="preview || undefined" @click="copyPrompt"><BzIcon :name="copied ? 'check' : 'copy'" />{{ copied ? '已复制' : '复制安装提示词' }}<span v-if="openbot && !copied" class="bz-sr-only">（发给 OpenBot）</span></button>
   </div>
   <p v-if="preview" class="bot-actions-note" data-testid="preview-actions-note">上架后可用</p>
-  <dialog v-if="fallback && !bot.external" ref="dialog" class="prompt-fallback" data-testid="prompt-fallback" :aria-labelledby="`copy-title-${bot.slug}`" :aria-describedby="`copy-help-${bot.slug}`" @click="backdrop" @close="fallback = false; copyButton?.focus()">
+  <dialog v-if="fallback && repoFiles" ref="dialog" class="prompt-fallback" data-testid="prompt-fallback" :aria-labelledby="`copy-title-${bot.slug}`" :aria-describedby="`copy-help-${bot.slug}`" @click="backdrop" @close="fallback = false; copyButton?.focus()">
     <h2 :id="`copy-title-${bot.slug}`">复制没成功，请手动复制</h2>
-    <p :id="`copy-help-${bot.slug}`">全选下面的文字，复制后发给你的 Grok Bot</p>
-    <textarea ref="field" aria-label="安装提示词" readonly :value="installPrompt(bot.slug)" rows="7" />
+    <p :id="`copy-help-${bot.slug}`">{{ openbot ? '全选下面的文字，复制后发给 OpenBot 里的任意一个 Agent' : '全选下面的文字，复制后发给你的 Grok Bot' }}</p>
+    <textarea ref="field" aria-label="安装提示词" readonly :value="prompt" rows="7" />
     <button type="button" class="bz-btn" @click="dialog?.close()">关闭</button>
   </dialog>
 </template>

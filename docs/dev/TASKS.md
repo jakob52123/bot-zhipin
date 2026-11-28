@@ -45,6 +45,18 @@
 | PV-PII | 投稿里疑似手机号、邮箱、身份证号打码提醒；示例邮箱换保留域名 | ✅ |
 | PV-REVIEW | 复核 `ai-claim-checker`、`ai-daily-radar`、`wechat-article-catcher` 的新版模板，复核后改 `templateVersion` | ⬜ |
 
+## 货架支持 OpenBot（2026-11-28，决策 76）
+
+| ID | 任务 | 状态 |
+|---|---|---|
+| OB-DATA | `platform` 字段、OpenBot 免模板链接、必有 ROLE.md、「本机文件」权限、`projectUrl` 及其上游核对 | 🟡 |
+| OB-UI | 平台标签、复制安装提示词当主按钮（列表卡、主推卡、详情页）、侧栏「项目」 | 🟡 |
+| OB-FIRST | 收录百搭剪辑（`video-clip-sop`），本周主推替下额度省省助手 | 🟡 |
+| OB-TRY | 在一台装了 OpenBot 的 Mac 上照 OpenBot 版安装提示词真装一遍，按结果改提示词 | ⬜ |
+| OB-SUBMIT | 网站投稿收 OpenBot 的 Bot：投稿指南加 OpenBot 怎么导出自己，服务端放开 | ⬜ |
+| OB-SQUAD | 小队里编 OpenBot 的 Bot | ⬜ |
+| OB-E2E | e2e 样例里加一个 OpenBot 的 Bot（要同步改「共 3 个」「找到 3 个 Bot」这类写死的数量和 name-zh 里「每张卡都有导入」的断言），把主推卡的复制按钮、没有导入、侧栏「项目」放进浏览器测试；这次是脚本截图和点击人工验的 | ⬜ |
+
 ## 第一期验收（来自需求）
 
 1. `npm run validate` 和 `npm run build` 本地通过。

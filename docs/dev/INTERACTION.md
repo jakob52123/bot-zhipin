@@ -253,7 +253,7 @@ VitePress 默认顶栏（`.VPNavBar`）换肤，不另写导航组件，汉堡�
   1. 头行：72px 头像砖（`.featured-tile.bz-tile`，活 Bot 占砖 68%，`aria-hidden`，点它是戳）+ 右边名字（`h3.bot-name > a`，链到详情页，title 档 16px/600 圆体；有中文叫法的写成「中文叫法 + 原名」，只占一行，§3.4）和作者行（13px `--bz-text-3`：`by 作者`（链接规则见「作者主页」），后面跟「· 官方市场」或「· 社区收录」）。作者自己投稿的，名字右边一个「作者投稿」标签。
   2. 介绍 `.bot-tagline`（15px/1.6，`--bz-text-2`，固定两行高，多了省略），到头行 16。
   3. **编辑点评** `blockquote.featured-note[data-testid="featured-note"]`（有 `note` 才有），到介绍 16：一块圆角 8 的底（Bot 色 7% 混 `--bz-surface-2`），内边距 12；左边一个 20px 的 `quote` 图标（Bot 色 70% 混墨色），右边点评本身（13px/1.5，墨色 85%）。**只显示点评，不写「编辑说」。** 点评不拦点击，点它和点卡片别处一样进详情。
-  4. 底行 `.featured-foot`：左边分组标签（前面一只 12px 的分组吉祥物）+ 额度（`bolt` +「额度 低/中/高」，「高」用 `--bz-quota-high`）；右边「导入」`[data-testid="featured-import"]`（`.bz-btn.sm`，`arrow-up-right` + 文字，上报和动画逻辑同列表）。
+  4. 底行 `.featured-foot`：左边分组标签（前面一只 12px 的分组吉祥物）+ 额度（`bolt` +「额度 低/中/高」，「高」用 `--bz-quota-high`）；右边「导入」`[data-testid="featured-import"]`（`.bz-btn.sm`，`arrow-up-right` + 文字，上报和动画逻辑同列表）；OpenBot 的 Bot 换成「复制安装提示词」（§3.5）。
 - **整张卡可点进详情**，做法和层级同列表卡（§3.2「整卡可点」）：砖、作者链接、「导入」在链接上面。
 - 悬停主推卡：Bot `wide`，不显示气泡；点砖 = 戳（和列表、详情共用同一个 slug 的戳历史）；点「导入」：上报、Bot 播 `comet`、新标签打开。
 
@@ -403,6 +403,15 @@ VitePress 默认顶栏（`.VPNavBar`）换肤，不另写导航组件，汉堡�
 
 验收：`tests/unit/bot-name.test.mjs`（怎么称呼、校验、搜索、排序、投稿预览）、`tests/e2e/name-zh.spec.mjs`（各页面的写法和主次、六种宽度下只占一行且不挤掉「导入」、收窄时「写全 → 截断 → 不显示」、详情页标题换行、搜索、小队页）。
 
+### 3.5 平台：OpenBot 的 Bot
+
+货架上的 Bot 默认是 Grok Bot；`bot.yaml` 写了 `platform: OpenBot` 的是 OpenBot 的 Bot（决策 76）。界面上只多两样东西，不加任何说明句子：
+
+- **平台标签** `.bz-tag.platform-tag[data-testid="platform-tag"]`「OpenBot」，只挂在 OpenBot 的 Bot 上（Grok Bot 不挂）。列表卡、主推卡挂在名字右边（「作者投稿」标签后面）；详情页挂在头部分组标签右边。颜色 `#4f46e5`，和分组、来源标签一样 14% 混卡片底、字 40% 混墨色。
+- **没有「导入」**：OpenBot 没有模板链接。「复制安装提示词」`btn-prompt` 升成主按钮：列表卡、主推卡是实心小号（`.bz-btn.sm`），详情页侧栏是 `.bz-btn.primary.block`，这一屏唯一的实心主按钮。主推卡用的就是列表卡那颗（`BotActions`，埋点 `from: featured`）。复制的内容是 OpenBot 版安装提示词（`meta.mjs` 的 `installPrompt(slug, 'OpenBot')`）：发给 OpenBot 里任意一个 Agent，它先说清楚会做什么，等用户确认再新建一个 Agent 来当这个 Bot，定时任务先建好不开。读屏多一句「（发给 OpenBot）」。
+- 外部收录的 OpenBot 也有这颗按钮（仓库里有它的 ROLE.md 和技能，摘要 `repoFiles: true`），详情页「技能」一块列的是 `skills/` 里的真文件，带「查看源码」。
+- 写了 `projectUrl` 的，详情页侧栏小字里多一行「项目」（§9.2）。
+
 ## 4. 活体头像与接口
 
 常驻动作由引擎 liveliness 提供：呼吸、自然眨眼、视线漂移。所有 LiveBot 初始化及减少动效重置时，均在 `new BotEngine` 第四参数传 `EXPRESSION_BY_ID.get('attentif')`，正脸竖胶囊眼，不再用默认往右上的 neutre。临时表情与鼠标跟随保持原行为。渲染方式参考 jeremy-prt/bloub `BloubBot.vue`（MIT，b4bb3c1），保留 mask 挖眼及粒子、圆环前后层次，不修改 vendor。
@@ -533,7 +542,7 @@ SSR 不访问 window/document/matchMedia；输出 `sample(0)` 静态首帧，挂
 
 ## 8. 手动复制对话框
 
-原生 dialog，data-testid=prompt-fallback。标题「复制没成功，请手动复制」，说明「全选下面的文字，复制后发给你的 Grok Bot」。只读 textarea 内容等于安装提示词，打开自动全选聚焦；「关闭」按钮、Esc、点遮罩均可关，关闭后焦点回复制按钮。
+原生 dialog，data-testid=prompt-fallback。标题「复制没成功，请手动复制」，说明「全选下面的文字，复制后发给你的 Grok Bot」（OpenBot 的 Bot 是「……复制后发给 OpenBot 里的任意一个 Agent」）。只读 textarea 内容等于安装提示词，打开自动全选聚焦；「关闭」按钮、Esc、点遮罩均可关，关闭后焦点回复制按钮。
 
 ## 9. 详情页
 
@@ -559,12 +568,12 @@ DOM 顺序：「返回货架」→ `.detail-layout`（头部 `header.detail-head
 
 一张卡：圆角 12、内边距 20、细边 + 内高光，底色 `--bz-surface-1`（深色透明、浅色白）。自上而下三段，段与段之间一条细线：
 
-1. **按钮**（`BotActions`，都撑满、高 44、间距 8）：「一键导入」`btn-import`（`.bz-btn.primary`，`arrow-up-right` + 文字，**这一屏唯一的实心主按钮**）；不是外部收录的，下面一枚「复制安装提示词」`btn-prompt`（`.bz-btn`，`copy` + 文字，复制后变 `check` +「已复制」）。按钮下面不放说明小字。
+1. **按钮**（`BotActions`，都撑满、高 44、间距 8）：「一键导入」`btn-import`（`.bz-btn.primary`，`arrow-up-right` + 文字，**这一屏唯一的实心主按钮**）；不是外部收录的，下面一枚「复制安装提示词」`btn-prompt`（`.bz-btn`，`copy` + 文字，复制后变 `check` +「已复制」）。OpenBot 的 Bot 只有「复制安装提示词」一枚，是实心主按钮（§3.5）。按钮下面不放说明小字。
 2. **三项属性**（`dl.rail-facts`，三格并排，中间两条细线；每格上面一行 12px 的名称，下面一行 15px/600 的图标 + 值）。每格按自己内容的宽度起步、多出来的宽度三格平分，所以每格的字到下一条细线的留白一样宽。
    - **额度**：`[data-testid="quota-meter"]`，三根由矮到高的小柱（4 宽，高 6、10、14，像信号格）加一个字「低 / 中 / 高」。低亮 1 根、中亮 2 根、高亮 3 根；没亮的是 `--bz-border-strong`，亮的是 `--bz-ink`，只有「高」把柱子和字都换成 `--bz-quota-high`。档位的含义（`quotaCopy`）在 `title` 和 `.bz-sr-only` 里。
    - **账号**（`fact-account`）：权限里有「外部账号」或「浏览器 Cookie」是 `plug` +「要连」，否则 `plug-off` +「不用连」。和列表卡同一套判断。
    - **定时任务**（`fact-routines`）：`clock` +「N 个」（`about.routines` 的条数；0 个时这一格是三级灰）。只知道有、数不出几个的（有 `routines.md`，或带「定时自动运行」权限但没写 `about.routines`）显示一个对勾，读屏读「有」。
-3. **一组小字**（`dl.rail-meta`，13px，左边名称 `--bz-text-3`、右边值 `--bz-text-2`，行距 12）：作者（`author-link`，链接规则见「作者主页」）、来源（`.bot-origin`：官方市场 / 社区收录 / 作者投稿）、上架（`<time>`）、热度（`data-testid="heat"`：`flame` + 数字；没取到是「…」，失败是「—」）；有 `forkedFrom` 时再加一行「改编自」（`data-testid="forked-from"`，链到原 Bot 的详情页；原 Bot 有中文叫法的写成「中文叫法 + 原名」，`small`）。
+3. **一组小字**（`dl.rail-meta`，13px，左边名称 `--bz-text-3`、右边值 `--bz-text-2`，行距 12）：作者（`author-link`，链接规则见「作者主页」）、来源（`.bot-origin`：官方市场 / 社区收录 / 作者投稿）、项目（`data-testid="project-link"`，只有写了 `projectUrl` 的才有：GitHub 仓库写成「owner/仓库」，别的只写域名，新标签打开，埋点 `kind: source`）、上架（`<time>`）、热度（`data-testid="heat"`：`flame` + 数字；没取到是「…」，失败是「—」）；有 `forkedFrom` 时再加一行「改编自」（`data-testid="forked-from"`，链到原 Bot 的详情页；原 Bot 有中文叫法的写成「中文叫法 + 原名」，`small`）。
 
 **探头的小 Bot**（`data-testid="rail-peek"`，只在两栏时有）：头部整个滚到导航条下面以后，侧栏卡片的上沿右侧探出一只 28px 的它（露出上半身，弹簧 280ms 升上来），头部回到视野它就缩回去。侧栏吸顶跟着走的时候，一眼还认得出这是谁的导入按钮。它是活的（会眨眼、跟着光标看），鼠标移到侧栏上会睁大眼；纯装饰，`aria-hidden`、不接鼠标。用 `IntersectionObserver` 看头部，不监听滚动。减少动效时没有升降过渡。
 

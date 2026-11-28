@@ -64,7 +64,7 @@ function skillDetail(s) {
 function botDetail(b) {
   return {
     kind: 'bot', title: b.nameZh ?? b.name, ...b,
-    credit: creditLine({ author: b.author?.name, sourceUrl: b.templateUrl, detailUrl: b.detailUrl }),
+    credit: creditLine({ author: b.author?.name, sourceUrl: b.templateUrl ?? b.projectUrl ?? undefined, detailUrl: b.detailUrl }),
   }
 }
 
@@ -86,7 +86,7 @@ export function buildAgentData({ prompts, skills, bots }) {
     ? { ...common(d), titleOriginal: d.titleOriginal, lang: d.lang, models: d.models, hasBody: d.text !== null, hasImages: d.images.length > 0 }
     : d.kind === 'skill'
       ? { ...common(d), name: d.name, agents: d.agents, hasExamples: d.examples.length > 0 }
-      : { ...common({ ...d, purpose: d.tagline, scenarios: [], tags: [] }), name: d.name, nameZh: d.nameZh, starters: d.starters })
+      : { ...common({ ...d, purpose: d.tagline, scenarios: [], tags: [] }), name: d.name, nameZh: d.nameZh, platform: d.platform, starters: d.starters })
   const index = {
     name: SITE.name,
     url,

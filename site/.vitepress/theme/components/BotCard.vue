@@ -18,6 +18,7 @@ import BzIcon from './BzIcon.vue'
 import ExternalHint from './ExternalHint.vue'
 import RoleMascot from './RoleMascot.vue'
 import { SEND_PERMISSION } from '../../../../scripts/lib/bot-summary.mjs'
+import { OPENBOT } from '../../../../scripts/lib/platform.mjs'
 // showCategory：第三行最前面的分组标签。首页按分组分段显示时不要它（组头已经说了），专题筛选、投稿预览里要。
 const props = defineProps({ bot: { type: Object, required: true }, showCategory: { type: Boolean, default: true } })
 // 投稿预览里的数据可能还没通过校验，元信息只在取值像样时才显示。
@@ -41,11 +42,13 @@ const origin = computed(() => props.bot.external ? (props.bot.official ? '官方
         <div class="bot-title">
           <h3 class="bot-name"><a data-testid="detail-link" :href="preview ? '#submit-preview-detail' : bot.detailUrl" :target="preview ? '_self' : undefined" @click="preview && ($event.preventDefault(), showDetail())"><BotName :bot="bot" /></a></h3>
           <span v-if="!bot.external" class="bz-tag source-tag">作者投稿</span>
+          <span v-if="bot.platform === OPENBOT" class="bz-tag platform-tag" data-testid="platform-tag">OpenBot</span>
         </div>
         <p class="bot-byline">
           <span v-if="preview || (authorPagePath && bot.author.page === authorPagePath)" class="bot-author">by {{ bot.author.name }}</span>
           <a v-else-if="bot.author.page" data-testid="author-link" class="bot-author" :href="bot.author.page">by {{ bot.author.name }}</a>
-          <a v-else data-track-kind="author" data-testid="author-link" class="bot-author" :href="bot.author.link" target="_blank" rel="noopener noreferrer">by {{ bot.author.name }}<ExternalHint /></a>
+          <a v-else-if="bot.author.link" data-track-kind="author" data-testid="author-link" class="bot-author" :href="bot.author.link" target="_blank" rel="noopener noreferrer">by {{ bot.author.name }}<ExternalHint /></a>
+          <span v-else class="bot-author">by {{ bot.author.name }}</span>
           <span v-if="origin" class="bot-origin">· {{ origin }}</span>
         </p>
       </div>
