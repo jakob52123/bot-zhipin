@@ -53,9 +53,11 @@ const rows = (value) => Array.isArray(value) ? value.map((item, index) => [item,
 const nth = (index) => `第 ${index + 1} 个`
 
 /** squads 是 buildSquadModel 的结果；botSlugs 是货架上全部 Bot 的 slug。 */
-export function validateSquads(squads, { botSlugs = [], now = new Date() } = {}) {
+export function validateSquads(squads, { botSlugs = [], openbotSlugs = [], now = new Date() } = {}) {
   const errors = [], warnings = []
   const shelf = new Set(botSlugs)
+  // 小队是一个 Grok Bot 群（导入、接线都按 Grok Bot 写），OpenBot 的 Bot 暂时编不进来。
+  const openbots = new Set(openbotSlugs)
   const taken = new Map()
   for (const squad of squads) {
     const report = reporter(`squads/${squad.slug}/`, errors, warnings)
@@ -99,6 +101,8 @@ export function validateSquads(squads, { botSlugs = [], now = new Date() } = {})
         position.set(member.bot, index)
         if (!shelf.has(member.bot)) {
           report(name, where, `${nth(index)}成员 ${member.bot} 不在货架上`, '改成 bots/ 里已有的 slug；这个 Bot 还没上架的话，先把它投稿上架，再编进小队。')
+        } else if (openbots.has(member.bot)) {
+          report(name, where, `${nth(index)}成员 ${member.bot} 是 OpenBot 的 Bot，小队暂时只能编 Grok Bot`, '换成货架上的 Grok Bot，或者把这一项删掉。')
         }
       }
 

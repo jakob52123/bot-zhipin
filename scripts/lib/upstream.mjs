@@ -58,10 +58,23 @@ function skillChecker(github) {
 }
 
 export async function checkUpstream({ bots, skills, templateMeta, github, checkedAt }) {
-  const [b, s] = await Promise.all([scan(bots, data => checkBot(data, templateMeta), 2), scan(skills, skillChecker(github))])
-  const attention = [b, s].some(({ total, findings }) => findings.some(f => f.kind !== 'error') || (total > 0 && findings.length * 2 >= total))
-  return { checkedAt, attention, bots: b, skills: s }
+  // OpenBot 的 Bot 没有 x.ai 模板可对；写了源项目的，按 projectUrl 里审过的提交比对，和 Skill 同一套。
+  const openbot = data => data?.platform === 'OpenBot'
+  const templated = bots.filter(data => !openbot(data))
+  // 只认 GitHub 上的源项目（校验要求钉在 tree/<提交号> 上）；别处的没法比对，校验时已经提醒过。
+  const projects = bots.filter(data => openbot(data) && typeof data.projectUrl === 'string' && data.projectUrl.startsWith('https://github.com/'))
+    .map(data => ({ slug: data.slug, name: data.nameZh || data.name, source: { url: data.projectUrl } }))
+  const check = skillChecker(github)
+  const [b, s, p] = await Promise.all([scan(templated, data => checkBot(data, templateMeta), 2), scan(skills, check), scan(projects, check)])
+  // Skill 和源项目都是查 GitHub，「一半以上没查成」合起来算，免得只有一个源项目时一次超时就开 issue。
+  const onGithub = { total: s.total + p.total, findings: [...s.findings, ...p.findings] }
+  const attention = [b, onGithub].some(({ total, findings }) => findings.some(f => f.kind !== 'error') || (total > 0 && findings.length * 2 >= total))
+  return { checkedAt, attention, bots: b, skills: s, projects: p }
 }
+
+const TYPES = ['bots', 'skills', 'projects']
+// 旧结果（测试、存档）可能没有 projects，当作一个都没查。
+const findingsOf = (result, type) => result[type]?.findings ?? []
 
 const dateFormat = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' })
 const timeFormat = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Shanghai', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
@@ -78,7 +91,7 @@ function errorReason(message) {
 
 function findingLine(type, f) {
   const prefix = `- **${f.name}**（\`${f.slug}\`）：`
-  const site = ` · [本站](https://bot.jiachengbo.com/${type}/${f.slug})`
+  const site = ` · [本站](https://bot.jiachengbo.com/${type === 'projects' ? 'bots' : type}/${f.slug})`
   if (f.kind === 'error') return `${prefix}没查成（${errorReason(f.message)}）`
   if (type === 'bots') {
     const links = ` · [x.ai 模板](${f.templateUrl})${site}`
@@ -104,22 +117,24 @@ function findingLine(type, f) {
       case 'gone': return `${prefix}仓库或审过的那次提交找不到了`
       case 'moved': return `${prefix}仓库改名或转移到了 \`${f.current}\``
       case 'archived': return `${prefix}仓库已归档`
-      case 'unparsed': return `${prefix}source.url 不是 tree/<提交号> 的形式`
+      case 'unparsed': return `${prefix}${type === 'projects' ? 'projectUrl' : 'source.url'} 不是 tree/<提交号> 的形式`
     }
   }
 }
 
-const headings = ['需要先看', 'Bot 模板改过', '没记审过的版本', 'Skill 上游改过', '核对失败']
+const headings = ['需要先看', 'Bot 模板改过', '没记审过的版本', 'Skill 上游改过', 'OpenBot 源项目改过', '核对失败']
 export function report(result) {
   const sections = headings.map(() => [])
-  for (const type of ['bots', 'skills']) for (const f of result[type].findings) {
+  for (const type of TYPES) for (const f of findingsOf(result, type)) {
     const bot = type === 'bots'
-    const section = f.kind === 'error' ? 4 : ['gone', 'unpublished'].includes(f.kind) || (bot && f.kind === 'changed' && f.sensitive) ? 0 : !bot ? 3 : f.kind === 'missing' ? 2 : 1
+    const section = f.kind === 'error' ? 5 : ['gone', 'unpublished'].includes(f.kind) || (bot && f.kind === 'changed' && f.sensitive) ? 0
+      : type === 'projects' ? 4 : !bot ? 3 : f.kind === 'missing' ? 2 : 1
     sections[section].push(findingLine(type, f))
   }
   const text = sections.flatMap((rows, i) => rows.length ? [`## ${headings[i]}\n\n${rows.join('\n')}`] : []).join('\n\n')
   const checked = new Date(result.checkedAt)
-  const summary = text || `全部和审过的版本一致：${result.bots.total} 个 Bot、${result.skills.total} 个 Skill。`
+  const projects = result.projects?.total ? `、${result.projects.total} 个 OpenBot 源项目` : ''
+  const summary = text || `全部和审过的版本一致：${result.bots.total} 个 Bot、${result.skills.total} 个 Skill${projects}。`
   return `核对时间：${dateFormat.format(checked)} ${timeFormat.format(checked)}（北京时间）\n\n${summary}\n\n处理办法见 \`docs/dev/MAINTAINING.md\` 的「上游核对」一节。`
 }
 
@@ -127,7 +142,7 @@ const findingKey = (type, f) => `${type.slice(0, -1)}:${f.slug}:${f.kind}:${f.cu
 
 function reviewFindings(result, map) {
   // Temporary failures stay in the report but are not items to review.
-  return ['bots', 'skills'].flatMap(type => result[type].findings.filter(f => f.kind !== 'error').map(f => map(type, f)))
+  return TYPES.flatMap(type => findingsOf(result, type).filter(f => f.kind !== 'error').map(f => map(type, f)))
 }
 
 export function findingKeys(result) {

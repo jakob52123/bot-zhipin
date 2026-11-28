@@ -16,7 +16,7 @@ it('catalog 只导出约定字段，按 slug 而不是显示名字或输入顺�
     name: SITE.name, url: `${SITE.url}/`, description: SITE.tagline, docs: `${SITE.url}/llms.txt`,
     license: { id: 'CC-BY-4.0', url: 'https://creativecommons.org/licenses/by/4.0/deed.zh-hans', attribution: `${SITE.name}（${SITE.url}/）` },
     count: 2, bots: [
-      { slug: 'ab', name: 'Zoo', nameZh: '示例', tagline: '一句话', category: '产品', permissions: ['联网'], quotaCost: '低', cn: { fit: '好', note: '备注' }, starters: ['你好'], editorNote: '点评', templateUrl: first.templateUrl, detailUrl: `${SITE.url}/bots/ab`, author: { name: '作者', url: 'https://example.org' }, external: false, addedAt: '2026-01-01' },
+      { slug: 'ab', name: 'Zoo', nameZh: '示例', tagline: '一句话', category: '产品', permissions: ['联网'], quotaCost: '低', cn: { fit: '好', note: '备注' }, starters: ['你好'], editorNote: '点评', platform: 'Grok Bot', templateUrl: first.templateUrl, installPrompt: null, projectUrl: null, detailUrl: `${SITE.url}/bots/ab`, author: { name: '作者', url: 'https://example.org' }, external: false, addedAt: '2026-01-01' },
       expect.objectContaining({ slug: 'za', nameZh: null, cn: { fit: null, note: null }, starters: [], editorNote: null, author: { name: '投稿人', url: null } }),
     ],
   })

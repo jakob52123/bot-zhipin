@@ -46,10 +46,12 @@
 .stat-quota[data-quota="高"] { color: var(--bz-quota-high); }
 
 /* 标签着色：分类色、来源色都是 14% 混卡片底，字是 40% 混墨色。 */
-.bz-tag.category-tag, .bz-tag.source-tag { background: color-mix(in srgb, var(--bz-tag-color) 14%, var(--bz-card)); color: color-mix(in srgb, var(--bz-tag-color) 40%, var(--bz-ink)); }
+.bz-tag.category-tag, .bz-tag.source-tag, .bz-tag.platform-tag { background: color-mix(in srgb, var(--bz-tag-color) 14%, var(--bz-card)); color: color-mix(in srgb, var(--bz-tag-color) 40%, var(--bz-ink)); }
 .bz-tag.category-tag { --bz-tag-color: var(--bz-category-color); }
 /* 来源标签只剩「作者投稿」一种；官方市场、社区收录都写在作者行里 */
 .bz-tag.source-tag { --bz-tag-color: #ff6a13; }
+/* 平台标签只挂在 OpenBot 的 Bot 上（货架上的 Bot 默认都是 Grok Bot，不挂） */
+.bz-tag.platform-tag { --bz-tag-color: #4f46e5; }
 
 /* 分组标签前面那只 12px 的吉祥物（静止）：往左收 2px，和圆角的视觉重心对齐 */
 .bz-tag > .role-mascot { margin-left: -2px; }

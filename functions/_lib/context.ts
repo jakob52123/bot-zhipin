@@ -6,7 +6,8 @@ import type { Env } from './types'
 
 export interface SubmitContext {
   v: 1
-  index: { slug: string; templateUrl: string; [key: string]: unknown }[]
+  // OpenBot 的 Bot 没有模板链接，这一项不在。
+  index: { slug: string; templateUrl?: string; [key: string]: unknown }[]
   template: { files: Record<string, string> }
   templateModel: ReturnType<typeof buildBotModel>
 }
@@ -24,7 +25,7 @@ export async function loadSubmitContext(assets: Env['ASSETS'], requestUrl: strin
     if (!record(data) || data.v !== 1 || typeof data.commit !== 'string' || data.schemaSha256 !== SCHEMA_SHA256
       || !Array.isArray(data.index) || !data.index.every((item: any) => record(item)
         && typeof item.slug === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug)
-        && item.slug.length >= 2 && item.slug.length <= 40 && typeof item.templateUrl === 'string')
+        && item.slug.length >= 2 && item.slug.length <= 40 && (item.templateUrl === undefined || typeof item.templateUrl === 'string'))
       || !record(data.template) || !record(data.template.files)
       || !['bot.yaml', 'ROLE.md', 'DESIGN.md', 'skills/example-skill/SKILL.md'].every((key) => typeof data.template.files[key] === 'string')
       || !Object.values(data.template.files).every((value) => typeof value === 'string')

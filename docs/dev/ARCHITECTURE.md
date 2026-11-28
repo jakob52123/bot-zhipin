@@ -106,6 +106,10 @@ bots/*/bot.yaml, *.md, screenshots/        squads/*/squad.yaml        curation/s
 | `forkedFromName` / `forkedFromNameZh` | 「改编自」那个 Bot 的原名和中文叫法（没有是 `null`） |
 | `pitches` | 台词数组（没写是 `[]`）；`pitch` 保留，取第一句或 `null` |
 | `about` | **只在完整摘要里**，列表数据没有这个键。没写是 `null`；写了就是 `{ intro, does[], starters[], skills[{name, does}], routines[{what, when, default, quiet}], fit, notFit, cnFit, cnNote }`，缺的数组是 `[]`、缺的字符串是 `null` |
+| `platform` | `Grok Bot` 或 `OpenBot`（`bot.yaml` 不写就是 Grok Bot；常量和归一在 `scripts/lib/platform.mjs`，决策 76） |
+| `templateUrl` | Grok Bot 的 x.ai 模板链接；OpenBot 的是 `null` |
+| `projectUrl` | 照着做的源项目，没写是 `null`；钉在 `tree/<提交号>` 上时，每天的上游核对会比对它 |
+| `repoFiles` | 仓库里有这个 Bot 的 ROLE.md、技能这些文件（作者投稿的、OpenBot 的都有），「复制安装提示词」靠它们装 |
 | `needsAccount` | 权限里有「外部账号」或「浏览器 Cookie」 |
 | `selfRunning` | 权限里有「定时自动运行」 |
 

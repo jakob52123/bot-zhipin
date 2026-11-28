@@ -5,6 +5,7 @@ import { redact, scanSecrets } from './secrets.mjs'
 import { scanPersonalInfo } from './pii.mjs'
 import { botYamlSizeError } from '../yaml-limits.mjs'
 import { hasChinese } from '../bot-name.mjs'
+import { CLOUD_FILES, LOCAL_FILES, OPENBOT, platformOf } from '../platform.mjs'
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -76,7 +77,32 @@ export function validateModels(bots, { template, now = new Date(), others = [], 
       if (typeof data.nameZh === 'string' && data.nameZh && !hasChinese(data.nameZh)) {
         report(bot.yamlPath, 'nameZh', `nameZh 当前值 ${JSON.stringify(data.nameZh)} 里没有中文`, 'nameZh 填中文叫法，比如「点子拆解员」；不需要中文叫法就删掉这一行，页面会直接用 name。')
       }
+      // 平台：OpenBot 没有模板链接；两种「文件」权限各归各的平台（枚举和类型由 schema 报告）。
+      const openbot = platformOf(data) === OPENBOT
+      if (openbot) {
+        for (const field of ['templateUrl', 'templateVersion']) {
+          if (data[field] !== undefined) report(bot.yamlPath, field, `OpenBot 的 Bot 不写 ${field}`, `删掉 ${field} 这一行；OpenBot 没有模板链接，别人用页面上的「复制安装提示词」来装。`)
+        }
+      }
+      // 源项目：GitHub 上的要钉在审过的那次提交上，每天的上游核对才比得了；别处的核对管不到，提醒一声。
+      if (openbot && typeof data.projectUrl === 'string' && /^https:\/\//.test(data.projectUrl)) {
+        if (data.projectUrl.startsWith('https://github.com/')) {
+          if (!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/tree\/[a-f\d]{40}(?:\/[^?#\s]*)?$/i.test(data.projectUrl)) {
+            report(bot.yamlPath, 'projectUrl', 'GitHub 上的源项目要钉在审过的那次提交上', '写成 https://github.com/<作者>/<仓库>/tree/<40 位提交号>，提交号用你审过的那一次；每天的上游核对按它比对。')
+          }
+        } else {
+          report(bot.yamlPath, 'projectUrl', '源项目不在 GitHub 上，每天的上游核对管不到它', '收录前自己记好审过的版本，定期回去看看有没有改；能换成 GitHub 地址就换。', true)
+        }
+      }
+      const permissions = Array.isArray(data.permissions) ? data.permissions : []
+      if (openbot && permissions.includes(CLOUD_FILES)) {
+        report(bot.yamlPath, 'permissions', `OpenBot 跑在用户自己的电脑上，权限里不能有「${CLOUD_FILES}」`, `把「${CLOUD_FILES}」换成「${LOCAL_FILES}」。`)
+      }
+      if (!openbot && permissions.includes(LOCAL_FILES)) {
+        report(bot.yamlPath, 'permissions', `「${LOCAL_FILES}」只给 OpenBot 的 Bot 用，Grok Bot 读写的是云电脑里的文件`, `把「${LOCAL_FILES}」换成「${CLOUD_FILES}」；这是 OpenBot 的 Bot 的话，加一行 platform: ${OPENBOT}。`)
+      }
       if (policy.submission) {
+        if (openbot) report(bot.yamlPath, 'platform', '网站投稿暂时只收 Grok Bot', '投 Grok Bot 就删掉 platform 这一行；OpenBot 的 Bot 暂时只由维护者收录，想上架就在主仓库开一个普通 Issue，贴上 Bot 的地址。')
         if (data.external === true) report(bot.yamlPath, 'external', '网站投稿不允许 external: true', '删除 external 字段；外部收录只能由维护者处理。')
         if (typeof data.author?.github !== 'string' || data.author.github.toLowerCase() !== String(policy.submission.login).toLowerCase()) {
           report(bot.yamlPath, 'author.github', 'author.github 必须等于当前登录的 GitHub 用户名（忽略大小写）', '使用实际作者的 GitHub 账号登录，并将 author.github 改为该账号。')

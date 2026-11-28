@@ -1,4 +1,5 @@
 import { hasDesignFrontmatter, stripComments } from '../design-content.mjs'
+import { OPENBOT, platformOf } from '../platform.mjs'
 export { stripComments }
 const headings = (text) => stripComments(text).split(/\r\n|\n|\r/).flatMap((line) => {
   if (!/^##[ \t]+/.test(line)) return []
@@ -13,9 +14,16 @@ export function validateContent(bot, template, report) {
   if (bot.design !== null && hasDesignFrontmatter(bot.design)) {
     report('DESIGN.md', 'frontmatter', 'DESIGN.md 不允许 frontmatter', '删除开头 --- 到下一个 --- 的整个 frontmatter 块，只保留 Markdown 正文。')
   }
-  if (bot.data?.external === true) return
+  // OpenBot 的 Bot 靠 bots/<slug>/ 里的文件来装（复制安装提示词），外部收录的也一定要有 ROLE.md；
+  // 技能可以没有，写了的照样检查。
+  const openbot = platformOf(bot.data) === OPENBOT
+  if (bot.data?.external === true && !openbot) return
   if (bot.role === null || !stripComments(bot.role).trim()) {
     report('ROLE.md', '正文', bot.role === null ? '缺少 ROLE.md' : 'ROLE.md 去掉 HTML 注释后为空', '创建或补充 ROLE.md，写清 Bot 的岗位、职责和边界；不要只写注释。')
+  }
+  if (bot.data?.external === true) {
+    validateSkills(bot, report)
+    return
   }
   const designPath = 'DESIGN.md'
   if (bot.design === null) {
@@ -29,6 +37,10 @@ export function validateContent(bot, template, report) {
     if (missing.length) report(designPath, '二级标题', `缺少二级标题：${missing.join(' / ')}`, `补上以下标题及对应内容：${missing.map((title) => `## ${title}`).join('；')}。`, true)
   }
   if (!bot.skills.length) report('skills', '技能文件夹', 'skills/ 下至少需要一个技能文件夹', '创建 skills/<技能名>/SKILL.md，填写 frontmatter 和具体操作步骤。')
+  validateSkills(bot, report)
+}
+
+function validateSkills(bot, report) {
   for (const skill of bot.skills) {
     if (!skill.exists) {
       report(skill.path, '文件', '技能文件夹缺少 SKILL.md', `在 skills/${skill.name}/ 中创建 SKILL.md，填写 name、description 的 frontmatter 和技能正文。`)

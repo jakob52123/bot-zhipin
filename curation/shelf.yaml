@@ -6,13 +6,13 @@
 featured:
   - bot: idea-stress-test
     note: 什么都不用准备，丢一个点子进去它就开拆。拆完你会知道最该先验证哪一条。
-  - bot: quota-saver
-    note: 定时任务先在你自己电脑上免费看一眼，有变化才叫醒 Bot。额度不够用的先装它。
+  - bot: video-clip-sop
+    note: 长录像扔进文件夹，它转写、挑片段、剪成片、写文案、做封面，你只在工作台上点四下。
   - bot: copy-humanizer
     note: 改稿不改意思，每处改动都告诉你为什么。写完的东西有 AI 味，交给它。
 
 # 「推荐」排序的置顶顺序，排在前面的先出现；没写进来的 Bot 排在它们后面。
-picks: [idea-stress-test, pm-bot, critiquito, startup-qa-bot, competitor-watch, product-marketer, ai-search-visibility, sales-call-coach, copy-humanizer, media-downloader, writing-bot, video-editor, clip-bot, video-edit-desk, x-brief, event-producer, meeting-recap-deck, quota-saver, memory-keeper, feishu-app-keeper, dr-eggbot, the-interviewer, pfp-bot, zuozuo-ai-intel, wechat-article-catcher, ledger-keeper, decoder, resume-tailor-desk, ai-pm-os]
+picks: [idea-stress-test, pm-bot, critiquito, startup-qa-bot, competitor-watch, product-marketer, ai-search-visibility, sales-call-coach, copy-humanizer, media-downloader, writing-bot, video-editor, clip-bot, video-clip-sop, video-edit-desk, x-brief, event-producer, meeting-recap-deck, quota-saver, memory-keeper, feishu-app-keeper, dr-eggbot, the-interviewer, pfp-bot, zuozuo-ai-intel, wechat-article-catcher, ledger-keeper, decoder, resume-tailor-desk, ai-pm-os]
 
 # 专题，按这里写的顺序显示；每个专题 2～12 个 Bot，Bot 也按写的顺序排。
 collections:
@@ -27,7 +27,7 @@ collections:
   - slug: solo-video
     title: 一个人做短视频
     blurb: 找选题、扒素材、剪片子、出封面
-    bots: [last30days, x-brief, media-downloader, video-editor, clip-bot, video-edit-desk, stills-clips-desk, copy-humanizer]
+    bots: [last30days, x-brief, media-downloader, video-editor, clip-bot, video-clip-sop, video-edit-desk, stills-clips-desk, copy-humanizer]
   - slug: daily-brief
     title: 每天一份简报
     blurb: 定好时间它们自己跑，早上看结果
@@ -114,6 +114,7 @@ editorNotes:
   sweeper: 不编额度数字，动别的 Bot 之前一定先问。和本站的额度省省助手互补，那个改造定时任务，这个先做体检。
   talent-discovery: 没链接就不出卡片，不猜年龄性别，标了勿联系的人永远不出现。整理的是别人的公开信息，注意合规。
   the-interviewer: 不中途打分加狠复盘的思路对路，但配置很薄，题量、时长和评分标准都没写，面试质量主要看底模。
+  video-clip-sop: 人只管挑片段、看成片、选封面、点授权四下，其余交给 AI；只定时发、要花钱就停、原片不动都写成了红线。只支持 Apple 芯片的 Mac，剪辑离不开 ChatCut。
   video-edit-desk: 四个剪辑 Bot 里最像听指挥的剪辑助理，你说剪哪就剪哪，时间码和比例预设写得很死。
   video-editor: 四个剪辑 Bot 里最像专业剪辑师，响度、帧率都写死。留意交付文件夹的旧版会被删。
   website-ops: 合并、部署、改 DNS 一律不碰，PR 留给你合。首次要在云电脑上构建你的站，一次体检截几十上百张图，很耗额度。

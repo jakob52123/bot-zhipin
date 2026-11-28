@@ -39,7 +39,7 @@
 | `path` | 当前路径，不带查询串和锚点 |
 | `slug` | 详情页（Bot、小队、Prompt、Skill）和作者主页自动取地址里的 slug（作者页取登录名）；列表上的动作由组件传被操作条目的 slug |
 
-**站外链接的 `kind`**：链接上写了 `data-track-kind` 就用它；没写的按地址推：`x.ai/bot#download` 是 `download`，本仓库 GitHub 地址下的 `/pull/` 是 `pr`，本仓库其他地址是 `repo`，其余是 `other`。作者的站外主页（含作者页上的 `@登录名`）写 `author`，Prompt/Skill 的原文出处写 `source`，许可证写 `license`。站内链接（包括 `/authors/`）不记 `outbound`，靠 `page_view` 的 `prev` 看从哪来。带 `data-track-own` 的链接（导入按钮，已由 `bot_import` 记过）不记。
+**站外链接的 `kind`**：链接上写了 `data-track-kind` 就用它；没写的按地址推：`x.ai/bot#download` 是 `download`，本仓库 GitHub 地址下的 `/pull/` 是 `pr`，本仓库其他地址是 `repo`，其余是 `other`。作者的站外主页（含作者页上的 `@登录名`）写 `author`，Prompt/Skill 的原文出处、Bot 详情页侧栏的源项目写 `source`，许可证写 `license`。站内链接（包括 `/authors/`）不记 `outbound`，靠 `page_view` 的 `prev` 看从哪来。带 `data-track-own` 的链接（导入按钮，已由 `bot_import` 记过）不记。
 
 **整批共用**（每批请求带一次）：`sid` 会话号、`device`（`mobile`/`desktop`，宽度 ≤ 767px 或主要指针是触屏算 `mobile`）。
 
@@ -50,7 +50,7 @@
 | `page_view` | 进一个页面：首次打开和站内跳转都算，只改查询串或锚点不算 | 详情页的 slug | `landing` 是不是本次会话第一页；`ref` 外站来源域名（只在 landing）；`prev` 上一页类型（只在站内跳转）；`utm_source` `utm_medium` `utm_campaign`（只在 landing） |
 | `bot_import` | 点任一「导入」 | 被导入的 Bot | `from`：`card` 列表卡 · `featured` 主推卡 · `detail` 详情页 · `squad_lineup` 小队阵容 · `squad_setup` 小队步骤；`squad` 小队 slug；`direct` 走了协议唤起；`trial` 试跑句复制结果 `none`/`copied`/`failed`；`mod` 按着修饰键或中键 |
 | `bot_no_app` | 导入后出现「没装 Grok Bot？去下载」 | 该 Bot | — |
-| `bot_copy_prompt` | 复制安装提示词，复制结果出来之后发 | 该 Bot | `from` `card`/`detail`；`ok` |
+| `bot_copy_prompt` | 复制安装提示词，复制结果出来之后发（OpenBot 的 Bot 没有导入，这就是它的「拿走」） | 该 Bot | `from` `card`/`featured`/`detail`；`ok` |
 | `bot_copy_starter` | 复制一条开场白，结果出来之后发 | 该 Bot | `index` 第几条（从 0 起）；`ok` |
 | `squad_start` | 点「开始组队」 | 小队 | — |
 | `squad_copy` | 复制口令或试一句 | 小队 | `which` `kickoff`/`tryout`；`ok` |

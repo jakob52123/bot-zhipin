@@ -1,0 +1,54 @@
+# 外部收录（OpenBot）：照开源项目 video-clip-sop 写的 OpenBot 岗位。ROLE.md 和技能是本站按项目 README、AGENTS.md 和作者介绍页写的，
+# 介绍、权限、额度和准备事项是本站读过项目文件后做的判断；流程、标准和脚本都在作者的仓库里，装的时候 AI 会去下载。
+slug: video-clip-sop
+name: 百搭剪辑
+tagline: 把课程直播长录像剪成竖屏短视频，定时发布，再用数据改标准
+category: 内容
+platform: OpenBot
+author:
+  name: 呆胶布
+  github: CrazyGoudanli
+# 源项目写成审过的那次提交：每天的上游核对按它比对，作者改了就提醒复核（和 Skill 的 source.url 一样）。
+projectUrl: https://github.com/CrazyGoudanli/video-clip-sop/tree/2d161e3cf4fa7fe9e91c3a09d55cf4f9f5216fcb
+addedAt: 2026-11-28
+prerequisites:
+  - 一台 Apple 芯片的 Mac，装好 OpenBot
+  - 剪辑要用 ChatCut，你自己安装并登录
+  - 发布要用 ego lite 浏览器，在里面登录要发的平台
+  - 封面默认用 Codex 生图，花你 ChatGPT 的额度；不想用可以改成模板拼图
+  - 一条长录像要跑好几轮 AI，用的是你 AI 账号的额度
+quotaCost: 中
+permissions:
+  - 本机文件
+  - 浏览器 Cookie
+  - 外部账号
+  - 联网
+  - 定时自动运行
+  - 代我发消息
+external: true
+pitch:
+  - 两小时的直播课，我先挑出值得剪的几段。
+  - 你在工作台点了授权，我才去设定时发布。
+  - 播放数据回来了，我再提下次怎么改。
+about:
+  intro: 把课程、直播、访谈这类长录像放进项目的「待加工」文件夹，它在你的 Mac 上本机转写，挑出候选片段，剪成 60 到 90 秒的竖屏短视频，写好各平台文案、做好封面。你在本地工作台上点授权，它才设定时发布；发布后回收数据，提出改标准的建议。
+  does:
+    - 本机转写长录像，挑出 5 到 10 个候选片段
+    - 剪成带字幕和标题栏的竖屏成片
+    - 按平台分别写标题、简介和话题标签，做封面
+    - 你授权以后只设定时发布，绝不立即发
+    - 发布后回收数据，提出改选题、文案、剪辑标准的建议
+    - 第一次帮你下载、配置、检查环境，要你动手时停下
+  starters:
+    - 帮我把百搭剪辑装好，按项目里 AGENTS.md 的第一次启动来
+    - 录像我放进待加工了，按流程跑一遍，到要我拍板的地方停下
+    - 现在有哪些待办，哪些要我在工作台上处理
+  routines:
+    - what: 看一眼有没有新待办，有 AI 要做的就接着做
+      when: 默认每 5 分钟，可以改
+      default: 关
+      quiet: 不打扰
+  fit: 手上常有课程、直播、访谈长录像，想切成短视频定时发抖音的人
+  notFit: 用 Windows 或 Intel 芯片 Mac 的人，或只想剪一两条、不想装软件的人
+  cnFit: 好
+  cnNote: 抖音定时发布作者已跑通；视频号、B 站、小红书还在实验，快手暂不支持；转写在本机，不上传

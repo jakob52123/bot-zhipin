@@ -1,4 +1,5 @@
 import { authorPagePath } from './authors.mjs'
+import { OPENBOT, platformOf } from './platform.mjs'
 import { SITE } from '../../site/.vitepress/meta.mjs'
 
 const OFFICIAL_MARKETPLACE_PREFIX = 'https://x.ai/bot/marketplace/bots/'
@@ -49,6 +50,8 @@ export function summarizeBot(bot, { asset, names = new Map(), namesZh = new Map(
   const pitches = pitchLines(data.pitch)
   const permissions = data.permissions || []
   const has = (permission) => Array.isArray(permissions) && permissions.includes(permission)
+  const platform = platformOf(data)
+  const external = data.external === true
   return {
     slug: bot.slug,
     name: data.name,
@@ -60,9 +63,15 @@ export function summarizeBot(bot, { asset, names = new Map(), namesZh = new Map(
       page: authorPagePath(author.github),
       github: author.github || null,
       url: author.url || null,
-      link: author.github ? `https://github.com/${author.github}` : author.url || data.templateUrl,
+      link: author.github ? `https://github.com/${author.github}` : author.url || text(data.templateUrl) || text(data.projectUrl),
     },
-    templateUrl: data.templateUrl,
+    platform,
+    // OpenBot 的 Bot 没有模板链接，是 null。
+    templateUrl: text(data.templateUrl),
+    projectUrl: text(data.projectUrl),
+    // 仓库里有这个 Bot 的文件（ROLE.md、skills/、routines.md），「复制安装提示词」就是让 AI 来读它们：
+    // 作者投稿的都有；外部收录的只有 OpenBot 有（Grok Bot 的外部收录只收链接）。
+    repoFiles: !external || platform === OPENBOT,
     addedAt: data.addedAt,
     prerequisites: Array.isArray(data.prerequisites) ? data.prerequisites : [data.prerequisites || '无'],
     quotaCost: data.quotaCost,
@@ -75,8 +84,8 @@ export function summarizeBot(bot, { asset, names = new Map(), namesZh = new Map(
     forkedFrom: data.forkedFrom || null,
     forkedFromName: names.get(data.forkedFrom) || data.forkedFrom || null,
     forkedFromNameZh: text(namesZh.get(data.forkedFrom)),
-    external: data.external === true,
-    official: data.external === true && typeof author.url === 'string' && author.url.startsWith(OFFICIAL_MARKETPLACE_PREFIX),
+    external,
+    official: external && typeof author.url === 'string' && author.url.startsWith(OFFICIAL_MARKETPLACE_PREFIX),
     avatar: bot.avatar ? asset('avatar.png') : null,
     screenshots: bot.screenshots.filter((shot) => shot.isImage).map((shot) => asset(shot.file)),
     skills: bot.skills.filter((skill) => skill.exists).map((skill) => ({
@@ -111,7 +120,8 @@ export function decorateSummary(summary, { curation = null, squads = [] } = {}) 
 // 枚举只来自 schema；这里是产品文案，不是另一套枚举定义。
 export const permissionCopy = {
   云电脑文件: '会读写你 Grok Bot 云电脑里的文件',
-  '浏览器 Cookie': '会用云电脑浏览器里已登录网站的登录状态',
+  本机文件: '会读写你自己电脑上的文件',
+  '浏览器 Cookie': '会用浏览器里已登录网站的登录状态',
   外部账号: '需要你连接或登录第三方账号',
   联网: '会访问互联网上的网站或接口',
   定时自动运行: '会按计划自己运行，不用你每次叫它',

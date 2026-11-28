@@ -40,7 +40,7 @@ export const EVENTS = {
   },
   // 导入后 3 秒页面没失焦、出现「没装 Grok Bot？去下载」：疑似没装 App
   bot_no_app: {},
-  bot_copy_prompt: { from: oneOf('card', 'detail'), ok: bool }, // ok=false 表示剪贴板不可用、退回了手动复制
+  bot_copy_prompt: { from: oneOf('card', 'featured', 'detail'), ok: bool }, // ok=false 表示剪贴板不可用、退回了手动复制
   bot_copy_starter: { index: int(0, 50), ok: bool },
   squad_start: {}, // 点「开始组队」
   squad_copy: { which: oneOf('kickoff', 'tryout'), ok: bool },

@@ -17,6 +17,7 @@ import { heatState, loadHeat } from '../heat'
 import { ACCOUNT_PERMISSIONS, SELF_RUNNING_PERMISSION, SEND_PERMISSION } from '../../../../scripts/lib/bot-summary.mjs'
 // 读屏和替代文字里怎么称呼它：有中文叫法用中文叫法。
 import { displayName } from '../../../../scripts/lib/bot-name.mjs'
+import { OPENBOT } from '../../../../scripts/lib/platform.mjs'
 import BzIcon from './BzIcon.vue'
 import ExternalHint from './ExternalHint.vue'
 import LiveAnnouncer from './LiveAnnouncer.vue'
@@ -49,12 +50,26 @@ const squads = computed(() => list(props.bot.squads))
 const fit = computed(() => text(about.value.fit))
 const notFit = computed(() => text(about.value.notFit))
 const cnNote = computed(() => text(about.value.cnNote))
-// 技能：作者投稿的以 skills/ 目录为准（带源码链接）；外部收录没有源码，用 about.skills 里整理好的名字和一句话。
-const realSkills = computed(() => props.bot.external ? [] : list(props.bot.skills))
+// 技能：仓库里有这个 Bot 的文件时（作者投稿的、OpenBot 的）以 skills/ 目录为准（带源码链接）；
+// 外部收录的 Grok Bot 没有源码，用 about.skills 里整理好的名字和一句话。投稿预览的旧数据没有 repoFiles，按「作者投稿才有」算。
+const repoFiles = computed(() => props.bot.repoFiles ?? !props.bot.external)
+const realSkills = computed(() => repoFiles.value ? list(props.bot.skills) : [])
 const skills = computed(() => realSkills.value.length
   ? realSkills.value.map((skill) => ({ name: skill.name, does: skill.description, sourceUrl: skill.sourceUrl }))
   : list(about.value.skills).filter((skill) => skill && skill.name).map((skill) => ({ name: skill.name, does: skill.does })))
-const hasRoutinesFile = computed(() => !props.bot.external && !!props.bot.hasRoutines)
+const hasRoutinesFile = computed(() => repoFiles.value && !!props.bot.hasRoutines)
+const openbot = computed(() => props.bot.platform === OPENBOT)
+// 源项目：GitHub 上的写成「owner/仓库」，别的只写域名，侧栏放得下。
+const project = computed(() => {
+  const url = text(props.bot.projectUrl)
+  if (!url) return null
+  try {
+    const { protocol, hostname, pathname } = new URL(url)
+    if (protocol !== 'https:') return null
+    const repo = hostname === 'github.com' ? pathname.split('/').filter(Boolean).slice(0, 2).join('/') : ''
+    return { url, label: repo || hostname }
+  } catch { return null }
+})
 
 // 侧栏的四项属性：额度、要不要连账号、定时任务数、会不会代发消息。
 const quota = computed(() => text(props.bot.quotaCost))
@@ -100,7 +115,7 @@ onBeforeUnmount(() => watcher?.disconnect())
         <div class="detail-info">
           <component :is="preview ? 'h2' : 'h1'"><BotName :bot="bot" wrap /></component>
           <p class="detail-tagline">{{ bot.tagline }}</p>
-          <p class="detail-tags"><span class="bz-tag category-tag" :style="categoryStyle(bot.category)">{{ bot.category }}</span></p>
+          <p class="detail-tags"><span class="bz-tag category-tag" :style="categoryStyle(bot.category)">{{ bot.category }}</span><span v-if="openbot" class="bz-tag platform-tag" data-testid="platform-tag">OpenBot</span></p>
         </div>
       </header>
 
@@ -148,6 +163,10 @@ onBeforeUnmount(() => watcher?.disconnect())
             <dt>来源</dt>
             <dd class="bot-origin">{{ origin }}</dd>
           </div>
+          <div v-if="project" data-testid="project-link">
+            <dt>项目</dt>
+            <dd><a data-track-kind="source" :href="project.url" target="_blank" rel="noopener noreferrer">{{ project.label }}<ExternalHint /></a></dd>
+          </div>
           <div>
             <dt>上架</dt>
             <dd><time :datetime="bot.addedAt">{{ bot.addedAt }}</time></dd>
@@ -186,7 +205,7 @@ onBeforeUnmount(() => watcher?.disconnect())
           </div>
         </section>
 
-        <section v-if="skills.length || (preview && !bot.external)" data-testid="section-skills">
+        <section v-if="skills.length || (preview && repoFiles)" data-testid="section-skills">
           <h2>技能<span v-if="skills.length" class="section-count">{{ skills.length }}</span></h2>
           <ul v-if="skills.length" class="skill-grid">
             <li v-for="(skill, index) in skills" :key="skill.sourceUrl || index" data-testid="skill-item">

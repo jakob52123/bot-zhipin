@@ -62,13 +62,14 @@ export function previewModel(plaintext: string, {
   const bad = (path: string) => !model.data || invalid.some((error) =>
     error.instancePath === '' || error.instancePath === path || error.instancePath.startsWith(path + '/'))
   if (bad('/templateUrl') || typeof summary.templateUrl !== 'string') summary.templateUrl = null
+  if (bad('/projectUrl') || typeof summary.projectUrl !== 'string') summary.projectUrl = null
   if (bad('/author')) {
     summary.author.url = null
     summary.author.link = null
   } else {
     summary.author.link = summary.author.github
       ? `https://github.com/${summary.author.github}`
-      : summary.author.url || summary.templateUrl || null
+      : summary.author.url || summary.templateUrl || summary.projectUrl || null
   }
   if (bad('/forkedFrom')) { summary.forkedFrom = null; summary.forkedFromName = null; summary.forkedFromNameZh = null }
   return { model, summary, designHtml: renderDesign(model.design || '', { slug, assetUrl: asset, screenshotNames: [], blockedUrl: typeof model.data?.templateUrl === 'string' ? model.data.templateUrl : undefined }), slug }

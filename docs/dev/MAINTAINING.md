@@ -55,6 +55,17 @@ fork PR 只要改了 `bots/<slug>/`、`squads/<slug>/squad.yaml` 以外的任何
 2. 在 `prompts/` 或 `skills/` 新建 `<slug>.yaml`，文件名与 `slug` 一致。对照对应 schema 选分类，写中文用途、场景、作者、许可和 `addedAt`。Prompt 不分许可，原文放在 `body`，英文另配本站译文 `bodyZh`；`copyright` 照原页填写（单行 1–200 字），原页没写就填「版权归原作者，原页未声明许可」。摘要和用法用自己的话写。Skill 写原名、确认支持的 agents、自写摘要、按顺序列 1–3 个安装命令（说明放 note）、必要依赖，不收 SKILL.md。
 3. 跑 `npm run check`，在列表点进详情核对分类、署名、来源与复制值；有中文译文时，核对主按钮复制译文，展开「英文原文」可单独复制原文；没有正文时仍显示仅摘要。原作者要求下架时删除对应 YAML 后重新校验、构建；列表、静态路径及下架兜底清单一起更新，无需改 Bot 计数。给 AI 用的 `/data/prompts/<slug>.json`、`/data/skills/<slug>.json` 由 `functions/data/*/[slug].ts` 按同一份清单兜底，删了 YAML 就立即 404，不用另外处理；装了 bot-zhipin skill 的人本机索引最多缓存 24 小时，这段时间里搜索结果还可能列出这条，但取详情会是 404。
 
+## 收录一个 OpenBot 的 Bot（仅维护者）
+
+决策 76：网站投稿暂时只收 Grok Bot，OpenBot 的 Bot 由维护者收录。
+
+1. 建 `bots/<slug>/`：`bot.yaml` 写 `platform: OpenBot`，**不写** `templateUrl`、`templateVersion`；照着别人的开源项目做的写 `external: true`，`author` 填项目作者（有 GitHub 就填 `github`，会有作者主页和头像）。
+2. 一定要有 `ROLE.md`（「复制安装提示词」让 OpenBot 读它来建 Agent），技能放 `skills/<名字>/SKILL.md`，可以没有。用「对 Agent 说话」的口吻写，提问走提问工具、批准走确认卡。
+3. 权限里读写本机文件的用「本机文件」，不要用「云电脑文件」（校验会拦）。
+4. 照着开源项目做的，`projectUrl` 写成 `https://github.com/<owner>/<repo>/tree/<审过的提交号>`：每天的上游核对会把它放进「OpenBot 源项目改过」一节，作者改了就复核；复核完把提交号换成新的。
+5. 小队暂时编不进 OpenBot 的 Bot（校验会拦）。
+6. 安装提示词改动前先问用户（`meta.mjs` 的 `installPrompt`）。
+
 ## 上游核对
 
 每天北京时间 09:17 核对一次，待复核项集中在带 `upstream-watch` 标签的 issue；本地只读核对用 `npm run upstream`。不会自动下架。
