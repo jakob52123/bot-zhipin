@@ -49,7 +49,7 @@
 .detail-info > .detail-tagline { margin-top: var(--bz-sp-2); font-size: var(--bz-fs-title); line-height: 1.5; color: var(--bz-text-2); text-wrap: pretty; }
 .detail-info > .detail-tags { display: flex; flex-wrap: wrap; align-items: center; gap: var(--bz-sp-2); margin-top: var(--bz-sp-4); }
 
-/* ---------- 侧栏：一张卡。导入按钮 → 四项属性 → 作者、来源、上架、热度 ---------- */
+/* ---------- 侧栏：一张卡。导入按钮 → 四项属性 → 作者、上架、热度 ---------- */
 /* position: relative：单栏时头部那团柔光会漫到侧栏的位置，侧栏要画在它上面（不然白色的导入按钮会被染色） */
 .detail-rail {
   position: relative; min-width: 0; padding: 20px; border: 1px solid var(--bz-hairline); border-radius: var(--bz-r-card);
@@ -97,12 +97,14 @@
 .quota-meter:is([data-quota="低"], [data-quota="中"], [data-quota="高"]) .quota-bars > i:first-child,
 .quota-meter:is([data-quota="中"], [data-quota="高"]) .quota-bars > i:nth-child(2),
 .quota-meter[data-quota="高"] .quota-bars > i:nth-child(3) { background: var(--bz-quota-lit); }
-/* 作者、来源、上架、热度、改编自：左边名称，右边值 */
+/* 作者、项目、上架、热度、改编自：左边名称，右边值 */
 .rail-meta { display: grid; row-gap: var(--bz-sp-3); margin: var(--bz-sp-4) 0 0; font-size: var(--bz-fs-sm); line-height: 20px; }
 .rail-meta > div { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--bz-sp-4); min-width: 0; }
 .rail-meta dt { flex: none; color: var(--bz-text-3); }
 .rail-meta dd { min-width: 0; margin: 0; color: var(--bz-text-2); text-align: right; font-variant-numeric: tabular-nums; }
 .rail-meta a { color: inherit; text-decoration: none; }
+.rail-meta .rail-author { display: inline-flex; align-items: center; gap: var(--bz-sp-2); }
+.rail-meta > div:has(.rail-author) { align-items: center; }
 .rail-meta a:hover { color: var(--bz-ink); text-decoration: underline; }
 .rail-meta .rail-heat { display: flex; align-items: center; gap: 6px; height: 20px; }
 .rail-heat > svg { flex: none; }

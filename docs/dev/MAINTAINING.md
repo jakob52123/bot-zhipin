@@ -46,7 +46,7 @@ fork PR 只要改了 `bots/<slug>/`、`squads/<slug>/squad.yaml` 以外的任何
 
 首页主推、推荐排序、专题和编辑点评都在 `curation/shelf.yaml`，文件里每一段都有注释；规则见 `schema/curation.schema.json`。改完运行 `npm run validate`：
 
-- `featured` 最多 3 个；`picks` 是「推荐」排序的置顶顺序，写在前面的先出现；`collections` 按写的顺序显示，每个 2 到 12 个 Bot；`editorNotes` 是 slug 对一句话。
+- `featured` 最多 3 个，每项只写 `- bot: <slug>`（主推卡不带点评，决策 79；写了 `note` 校验会报不认识的字段）；`picks` 是「推荐」排序的置顶顺序，写在前面的先出现；`collections` 按写的顺序显示，每个 2 到 12 个 Bot；`editorNotes` 是 slug 对一句话。
 - 里面的 slug 必须是货架上的 Bot。写错了，或者那个 Bot 已经下架，校验会报错并指到具体位置（比如 `collections.1.bots.3`）。
 
 ## 收录或下架 Prompt / Skill（仅维护者）

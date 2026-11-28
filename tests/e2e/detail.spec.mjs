@@ -82,16 +82,16 @@ test('内容少的 Bot：没有数据的区块整块不出现；外部收录的�
   await expect(page.getByTestId('fact-account')).toHaveText('不用连')
 })
 
-test('侧栏：导入、四项属性、作者来源上架热度；宽屏两栏吸顶，窄屏排在头部下面', async ({ page }) => {
+test('侧栏：导入、四项属性、作者上架热度；宽屏两栏吸顶，窄屏排在头部下面', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto(`/bots/${reviewer}`)
   const rail = page.getByTestId('detail-rail'), header = page.locator('.detail-header'), main = page.locator('.detail-main')
   await expect(rail.locator('.rail-fact > dt')).toHaveText(['额度', '账号', '定时任务', '代发消息'])
-  await expect(rail.locator('.rail-meta dt')).toHaveText(['作者', '来源', '上架', '热度'])
+  await expect(rail.locator('.rail-meta dt')).toHaveText(['作者', '上架', '热度'])
   await expect(rail.getByTestId('fact-account')).toHaveText('要连')
   await expect(rail.getByTestId('fact-account').locator('svg')).toHaveAttribute('data-icon', 'plug')
   await expect(rail.getByTestId('author-link')).toHaveAttribute('href', '/authors/example-user')
-  await expect(rail.locator('.bot-origin')).toHaveText('作者投稿')
+  await expect(rail).not.toContainText('作者投稿')
   await expect(rail.locator('time')).toHaveText('2026-11-01')
   await expect(rail.getByTestId('heat')).toHaveText('7')
   // 按钮下面没有说明小字：侧栏里没有成段的文字。
@@ -118,7 +118,7 @@ test('侧栏：导入、四项属性、作者来源上架热度；宽屏两栏�
   await expect(peek).toHaveAttribute('data-show', 'false')
   // 改编自：有才显示，链到原 Bot。
   await page.goto(`/bots/${weekly}`)
-  await expect(rail.locator('.rail-meta dt')).toHaveText(['作者', '来源', '上架', '热度', '改编自'])
+  await expect(rail.locator('.rail-meta dt')).toHaveText(['作者', '上架', '热度', '改编自'])
   await expect(rail.getByTestId('forked-from').locator('a')).toHaveAttribute('href', `/bots/${reviewer}`)
   // 999px：单栏，头部、侧栏、主栏依次往下，侧栏不吸顶，没有探头的小 Bot。
   await page.setViewportSize({ width: 999, height: 800 })

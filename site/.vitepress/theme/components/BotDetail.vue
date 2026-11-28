@@ -20,10 +20,11 @@ import { displayName } from '../../../../scripts/lib/bot-name.mjs'
 import { OPENBOT } from '../../../../scripts/lib/platform.mjs'
 import BzIcon from './BzIcon.vue'
 import ExternalHint from './ExternalHint.vue'
+import AuthorAvatar from './AuthorAvatar.vue'
 import LiveAnnouncer from './LiveAnnouncer.vue'
 import BotScreenshot from './BotScreenshot.vue'
 
-// 详情页是一份「简历」：左边主栏一块块往下读，右边侧栏吸顶（导入、四项属性、作者和来源）。
+// 详情页是一份「简历」：左边主栏一块块往下读，右边侧栏吸顶（导入、四项属性、作者、上架和热度）。
 // related（同组的 Bot）和 lineups（所在小队的成员小头像）由路由参数给；投稿预览不传，对应的区块不出现。
 const props = defineProps({
   bot: { type: Object, required: true },
@@ -79,8 +80,6 @@ const accountPermission = computed(() => permissions.value.find((item) => ACCOUN
 const runsUncounted = computed(() => !routines.value.length && (hasRoutinesFile.value || permissions.value.includes(SELF_RUNNING_PERMISSION)))
 const canSend = computed(() => permissions.value.includes(SEND_PERMISSION))
 const sendDescription = computed(() => canSend.value ? props.copy.permissions[SEND_PERMISSION] : undefined)
-// 来源：外部收录分官方市场和社区收录；作者自己投稿的写「作者投稿」。
-const origin = computed(() => props.bot.external ? (props.bot.official ? '官方市场' : '社区收录') : '作者投稿')
 const heat = computed(() => heatState.values[props.bot.slug] ?? (heatState.status === 'ready' ? 0 : heatState.status === 'failed' ? '—' : '…'))
 const heatPending = computed(() => !preview && (heatState.status === 'loading' || heatState.status === 'idle'))
 
@@ -119,7 +118,7 @@ onBeforeUnmount(() => watcher?.disconnect())
         </div>
       </header>
 
-      <!-- 侧栏：一键导入、四项属性、作者和来源。宽屏吸顶；窄屏排在头部下面。 -->
+      <!-- 侧栏：一键导入、四项属性、作者、上架和热度。宽屏吸顶；窄屏排在头部下面。 -->
       <aside class="detail-rail" data-testid="detail-rail" :aria-label="`${called} 的导入和基本信息`" @pointerenter="overRail(true, $event)" @pointerleave="overRail(false, $event)">
         <span v-if="!preview" class="rail-peek" data-testid="rail-peek" :data-show="String(headerGone)" aria-hidden="true"><BotMini :bot="bot" :size="28" :rest="railHover ? 'wide' : 'idle'" bare /></span>
         <BotActions :bot="bot" />
@@ -155,13 +154,9 @@ onBeforeUnmount(() => watcher?.disconnect())
             <dt>作者</dt>
             <dd>
               <span v-if="preview || !bot.author?.link">{{ bot.author?.name }}</span>
-              <a v-else-if="bot.author.page" data-testid="author-link" :href="bot.author.page">{{ bot.author.name }}</a>
+              <a v-else-if="bot.author.page" data-testid="author-link" class="rail-author" :href="bot.author.page"><AuthorAvatar class="byline-avatar" :author="{ key: bot.author.github, name: bot.author.name }" /><span>{{ bot.author.name }}</span></a>
               <a v-else data-track-kind="author" data-testid="author-link" :href="bot.author.link" target="_blank" rel="noopener noreferrer">{{ bot.author.name }}<ExternalHint /></a>
             </dd>
-          </div>
-          <div>
-            <dt>来源</dt>
-            <dd class="bot-origin">{{ origin }}</dd>
           </div>
           <div v-if="project" data-testid="project-link">
             <dt>项目</dt>

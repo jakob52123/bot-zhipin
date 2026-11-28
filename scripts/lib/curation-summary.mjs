@@ -19,7 +19,7 @@ export function resolveCuration(data, slugs, onDrop = () => {}) {
   const unique = (list) => [...new Set(list)]
   const featured = []
   for (const item of rows(source.featured)) {
-    if (featured.length < 3 && known(item.bot, 'featured') && !featured.some((entry) => entry.bot === item.bot)) featured.push({ bot: item.bot, note: text(item.note) })
+    if (featured.length < 3 && known(item.bot, 'featured') && !featured.some((entry) => entry.bot === item.bot)) featured.push({ bot: item.bot })
   }
   const picks = unique((Array.isArray(source.picks) ? source.picks : []).filter((slug) => known(slug, 'picks')))
   const collections = []

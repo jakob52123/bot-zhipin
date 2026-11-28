@@ -13,6 +13,8 @@ const test = base.extend({
     await page.route('**/api/events', r => { events.push(...r.request().postDataJSON().events); return r.fulfill({ status: 204 }) })
     await page.route('**/api/stats', r => r.fulfill({ json: { ok: true, heat: {}, byKind: {}, squads: {} } }))
     await page.route('**/api/click', r => { clicks.push(r.request().postDataJSON()); return r.fulfill({ json: { ok: true } }) })
+    // 卡片和侧栏的作者小头像走同源的 /api/avatar（决策 77）；静态预览没有函数，给一张小图，不让 404 记成控制台错误。
+    await page.route('**/api/avatar/**', r => r.fulfill({ path: 'site/public/apple-touch-icon.png', contentType: 'image/png' }))
     await use({ events, clicks })
     expect(errors).toEqual([])
   }, { auto: true }],

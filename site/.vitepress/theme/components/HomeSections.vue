@@ -63,11 +63,8 @@ const ordered = shallowRef(sortBots(bots, sort.value, heatState.values))
 const slugs = () => ordered.value.map((bot) => bot.slug).join(',')
 function reorder() { ordered.value = sortBots(bots, sort.value, heatState.values) }
 
-// 主推：编辑在策展文件里定的（最多三个，按写的顺序），各带一句点评。
-const featured = computed(() => curation.featured.flatMap((item) => {
-  const bot = bySlug.get(item.bot)
-  return bot ? [{ bot, note: item.note }] : []
-}))
+// 主推：编辑在策展文件里定的（最多三个，按写的顺序）。
+const featured = computed(() => curation.featured.flatMap((item) => bySlug.get(item.bot) ?? []))
 const collections = computed(() => curation.collections
   .map((item) => ({ ...item, bots: item.bots.flatMap((slug) => bySlug.get(slug) ?? []) }))
   .filter((item) => item.bots.length))
@@ -179,7 +176,7 @@ onBeforeUnmount(() => {
       <div><h2 id="featured-title">{{ SHELF_COPY.featuredTitle }}</h2></div>
     </header>
     <div class="featured-grid">
-      <FeaturedCard v-for="item in featured" :key="item.bot.slug" :bot="item.bot" :note="item.note" />
+      <FeaturedCard v-for="bot in featured" :key="bot.slug" :bot="bot" />
     </div>
   </section>
 

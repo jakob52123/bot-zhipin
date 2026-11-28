@@ -12,6 +12,7 @@ import BotPortrait from './BotPortrait.vue'
 import SquadStill from './SquadStill.vue'
 import BzIcon from './BzIcon.vue'
 import ExternalHint from './ExternalHint.vue'
+import AuthorAvatar from './AuthorAvatar.vue'
 import LiveAnnouncer from './LiveAnnouncer.vue'
 import { SQUAD_COPY } from '../../meta.mjs'
 import { avatarColor } from '../avatar'
@@ -167,7 +168,7 @@ onBeforeUnmount(() => {
             <span class="bz-tag" data-testid="squad-formation">{{ squad.formation }}</span>
             <span class="squad-count" data-testid="squad-count">{{ SQUAD_COPY.count(squad.members.length) }}</span>
             <span class="squad-byline">
-              <a v-if="squad.author.page" data-testid="squad-author" :href="squad.author.page">by {{ squad.author.name }}</a>
+              <a v-if="squad.author.page" data-testid="squad-author" class="squad-author has-avatar" :href="squad.author.page"><AuthorAvatar class="byline-avatar" :author="{ key: squad.author.github, name: squad.author.name }" />by {{ squad.author.name }}</a>
               <a v-else-if="squad.author.link" data-track-kind="author" data-testid="squad-author" :href="squad.author.link" target="_blank" rel="noopener noreferrer">by {{ squad.author.name }}<ExternalHint /></a>
               <span v-else data-testid="squad-author">by {{ squad.author.name }}</span>
               <span data-testid="squad-origin"> · {{ squad.origin }}</span>

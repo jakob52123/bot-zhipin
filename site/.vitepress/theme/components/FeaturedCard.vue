@@ -4,6 +4,7 @@ import BotName from './BotName.vue'
 import BotPortrait from './BotPortrait.vue'
 import BzIcon from './BzIcon.vue'
 import ExternalHint from './ExternalHint.vue'
+import AuthorAvatar from './AuthorAvatar.vue'
 import RoleMascot from './RoleMascot.vue'
 import { avatarColor } from '../avatar'
 import { botPalette, categoryStyle } from '../color'
@@ -14,22 +15,19 @@ import { SEND_PERMISSION } from '../../../../scripts/lib/bot-summary.mjs'
 import { OPENBOT } from '../../../../scripts/lib/platform.mjs'
 import BotActions from './BotActions.vue'
 
-// 主推卡：活 Bot、名字、作者、介绍、编辑点评、分组和额度、导入。不带台词气泡，也不参与筛选。
+// 主推卡：活 Bot、名字、作者、介绍、分组和额度、导入。不带台词气泡，也不参与筛选。
 // OpenBot 的 Bot 没有导入：右下角换成和列表卡同一颗「复制安装提示词」（BotActions，埋点记 featured）。
-// 编辑点评（note）来自策展文件：只显示点评本身，前面一个引号图标，不写「编辑说」。
 // 整张卡可点进详情：名字那个链接用伪元素铺满整卡（样式在 home.css），砖（戳）、作者、导入在它上面。
 const props = defineProps<{
   bot: {
     slug: string; name: string; nameZh?: string | null; tagline: string; avatar: string | null; category: string; quotaCost: string; permissions: string[]
-    templateUrl: string | null; detailUrl: string; author: { name: string; link: string | null; page: string | null }; external?: boolean; official?: boolean
+    templateUrl: string | null; detailUrl: string; author: { name: string; github?: string | null; link: string | null; page: string | null }; external?: boolean; official?: boolean
     platform?: string; repoFiles?: boolean
   }
-  note?: string | null
 }>()
 const portrait = ref<InstanceType<typeof BotPortrait>>()
 const hovered = ref(false)
 const palette = computed(() => botPalette(props.bot.avatar ? '#8a8a93' : avatarColor(props.bot.slug)))
-const origin = computed(() => props.bot.external ? (props.bot.official ? '官方市场' : '社区收录') : '')
 function enter(event: PointerEvent) {
   if (event.pointerType !== 'mouse') return
   hovered.value = true
@@ -57,18 +55,13 @@ function importBot(event: MouseEvent) {
           <span v-if="bot.platform === OPENBOT" class="bz-tag platform-tag" data-testid="platform-tag">OpenBot</span>
         </div>
         <p class="bot-byline">
-          <a v-if="bot.author.page" class="bot-author" :href="bot.author.page">by {{ bot.author.name }}</a>
+          <a v-if="bot.author.page" class="bot-author has-avatar" :href="bot.author.page"><AuthorAvatar class="byline-avatar" :author="{ key: bot.author.github, name: bot.author.name }" /><span class="bot-author-name">by {{ bot.author.name }}</span></a>
           <a v-else-if="bot.author.link" class="bot-author" data-track-kind="author" :href="bot.author.link" target="_blank" rel="noopener noreferrer">by {{ bot.author.name }}<ExternalHint /></a>
           <span v-else class="bot-author">by {{ bot.author.name }}</span>
-          <span v-if="origin" class="bot-origin">· {{ origin }}</span>
         </p>
       </div>
     </div>
     <p class="bot-tagline">{{ bot.tagline }}</p>
-    <blockquote v-if="note" class="featured-note" data-testid="featured-note">
-      <BzIcon name="quote" :size="20" />
-      <p>{{ note }}</p>
-    </blockquote>
     <div class="featured-foot">
       <div class="bot-stats">
         <span class="bz-tag role category-tag" :style="categoryStyle(bot.category)"><RoleMascot :category="bot.category" :size="12" />{{ bot.category }}</span>

@@ -15,7 +15,7 @@ import { validateAll, validateBots, formatResult } from '../../scripts/validate.
 const now = new Date('2026-11-14T04:00:00Z')
 const shelf = ['alpha-bot', 'beta-bot', 'gamma-bot', 'delta-bot']
 const base = () => ({
-  featured: [{ bot: 'alpha-bot', note: '什么都不用准备就能用。' }, { bot: 'beta-bot', note: '额度不够用的先装它。' }],
+  featured: [{ bot: 'alpha-bot' }, { bot: 'beta-bot' }],
   picks: ['alpha-bot', 'gamma-bot'],
   collections: [
     { slug: 'starter', title: '零门槛上手', blurb: '不用连账号就能用', bots: ['alpha-bot', 'beta-bot'] },
@@ -70,11 +70,10 @@ describe('合法的策展', () => {
 
 describe('schema', () => {
   it.each([
-    ['主推超过 3 个', (d) => { d.featured = shelf.map((bot) => ({ bot, note: '为什么推它的一句话。' })) }, 'featured', '最多 3 项'],
-    ['主推缺 note', (d) => { delete d.featured[0].note }, 'featured.0.note', '缺少必填字段 featured.0.note'],
+    ['主推超过 3 个', (d) => { d.featured = shelf.map((bot) => ({ bot })) }, 'featured', '最多 3 项'],
     ['主推缺 bot', (d) => { delete d.featured[1].bot }, 'featured.1.bot', '缺少必填字段 featured.1.bot'],
-    ['主推 note 不到 4 字', (d) => { d.featured[0].note = '好用' }, 'featured.0.note', '要求 4～80 个字符'],
-    ['主推 note 超过 80 字', (d) => { d.featured[0].note = long(81) }, 'featured.0.note', '要求 4～80 个字符'],
+    // 主推卡不再带点评（决策 79）：留着旧的 note 会报不认识的字段。
+    ['主推还写着 note', (d) => { d.featured[0].note = '为什么推它的一句话。' }, 'featured.0.note', '不认识的字段 featured.0.note'],
     ['picks 有重复', (d) => { d.picks = ['alpha-bot', 'alpha-bot'] }, 'picks', '含重复项'],
     ['picks 写成一句话', (d) => { d.picks = 'alpha-bot' }, 'picks', '要求 array'],
     ['专题缺 title', (d) => { delete d.collections[0].title }, 'collections.0.title', '缺少必填字段 collections.0.title'],
@@ -132,7 +131,7 @@ describe('和货架的交叉校验', () => {
     expect(validateCuration(model(), { botSlugs: [] }).errors).toHaveLength(2 + 2 + 5 + 1)
   })
   it('同一个 Bot 主推了两次', () => {
-    const errors = at((d) => { d.featured.push({ bot: 'alpha-bot', note: '又推了一次同一个。' }) }, 'featured.2.bot')
+    const errors = at((d) => { d.featured.push({ bot: 'alpha-bot' }) }, 'featured.2.bot')
     expect(errors).toHaveLength(1)
     expect(errors[0].problem).toBe('主推里 alpha-bot 写了两次（第 1 个和第 3 个）')
   })
@@ -182,7 +181,7 @@ describe('网站用的策展数据（resolveCuration）', () => {
   const slugs = new Set(shelf)
   it('只放 slug，形状固定；没有文件时四段都是空的', () => {
     expect(resolveCuration(base(), slugs)).toEqual({
-      featured: [{ bot: 'alpha-bot', note: '什么都不用准备就能用。' }, { bot: 'beta-bot', note: '额度不够用的先装它。' }],
+      featured: [{ bot: 'alpha-bot' }, { bot: 'beta-bot' }],
       picks: ['alpha-bot', 'gamma-bot'],
       collections: [
         { slug: 'starter', title: '零门槛上手', blurb: '不用连账号就能用', bots: ['alpha-bot', 'beta-bot'] },
@@ -197,7 +196,7 @@ describe('网站用的策展数据（resolveCuration）', () => {
   it('不在货架上的 slug 丢掉，每丢一个通知一次；一个 Bot 都不剩的专题不显示', () => {
     const dropped = []
     const data = base()
-    data.featured.push({ bot: 'ghost-a', note: '不在货架上的。' })
+    data.featured.push({ bot: 'ghost-a' })
     data.picks = ['ghost-b', 'alpha-bot']
     data.collections[0].bots = ['ghost-c', 'ghost-d']
     data.collections[1].bots = ['gamma-bot', 'ghost-e']
@@ -209,14 +208,14 @@ describe('网站用的策展数据（resolveCuration）', () => {
     expect(result.editorNotes).toEqual({ 'alpha-bot': '用过的人都说省事。' })
     expect(dropped).toEqual(['featured:ghost-a', 'picks:ghost-b', 'collections.starter:ghost-c', 'collections.starter:ghost-d', 'collections.daily:ghost-e', 'editorNotes:ghost-f'])
   })
-  it('没通过校验的数据也不会让它报错：重复的只留第一个，主推最多 3 个，类型不对的跳过', () => {
+  it('没通过校验的数据也不会让它报错：重复的只留第一个，主推最多 3 个，类型不对的跳过，多写的字段不带出去', () => {
     const result = resolveCuration({
-      featured: [{ bot: 'alpha-bot', note: '第一次' }, { bot: 'alpha-bot', note: '第二次' }, 'x', { bot: 'beta-bot' }, { bot: 'gamma-bot', note: '第三个' }, { bot: 'delta-bot', note: '第四个' }],
+      featured: [{ bot: 'alpha-bot', note: '旧的点评' }, { bot: 'alpha-bot' }, 'x', { bot: 'beta-bot' }, { bot: 'gamma-bot' }, { bot: 'delta-bot' }],
       picks: ['alpha-bot', 'alpha-bot', 5],
       collections: [{ slug: 'one', title: '专题', blurb: '说明文字', bots: ['alpha-bot', 'alpha-bot'] }, { slug: 'one', bots: ['beta-bot'] }, { bots: ['beta-bot'] }, null],
       editorNotes: { 'alpha-bot': 5, 'beta-bot': '一句点评' },
     }, slugs)
-    expect(result.featured).toEqual([{ bot: 'alpha-bot', note: '第一次' }, { bot: 'beta-bot', note: null }, { bot: 'gamma-bot', note: '第三个' }])
+    expect(result.featured).toEqual([{ bot: 'alpha-bot' }, { bot: 'beta-bot' }, { bot: 'gamma-bot' }])
     expect(result.picks).toEqual(['alpha-bot'])
     expect(result.collections).toEqual([{ slug: 'one', title: '专题', blurb: '说明文字', bots: ['alpha-bot'] }])
     expect(result.editorNotes).toEqual({ 'beta-bot': '一句点评' })

@@ -16,6 +16,7 @@ import BotHeat from './BotHeat.vue'
 import BotName from './BotName.vue'
 import BzIcon from './BzIcon.vue'
 import ExternalHint from './ExternalHint.vue'
+import AuthorAvatar from './AuthorAvatar.vue'
 import RoleMascot from './RoleMascot.vue'
 import { SEND_PERMISSION } from '../../../../scripts/lib/bot-summary.mjs'
 import { OPENBOT } from '../../../../scripts/lib/platform.mjs'
@@ -28,8 +29,7 @@ const permissions = computed(() => Array.isArray(props.bot.permissions) ? props.
 const needsAccount = computed(() => !!permissions.value?.some((item) => item === '外部账号' || item === '浏览器 Cookie'))
 const selfRunning = computed(() => !!permissions.value?.includes('定时自动运行'))
 const canSend = computed(() => !!permissions.value?.includes(SEND_PERMISSION))
-// 来源：外部收录的写进作者行（官方市场 / 社区收录）；作者自己投稿的在名字右边挂「作者投稿」标签。
-const origin = computed(() => props.bot.external ? (props.bot.official ? '官方市场' : '社区收录') : '')
+// 作者自己投稿的在名字右边挂「作者投稿」标签；外部收录的不写来源（决策 78）。
 </script>
 
 <template>
@@ -46,10 +46,9 @@ const origin = computed(() => props.bot.external ? (props.bot.official ? '官方
         </div>
         <p class="bot-byline">
           <span v-if="preview || (authorPagePath && bot.author.page === authorPagePath)" class="bot-author">by {{ bot.author.name }}</span>
-          <a v-else-if="bot.author.page" data-testid="author-link" class="bot-author" :href="bot.author.page">by {{ bot.author.name }}</a>
+          <a v-else-if="bot.author.page" data-testid="author-link" class="bot-author has-avatar" :href="bot.author.page"><AuthorAvatar class="byline-avatar" :author="{ key: bot.author.github, name: bot.author.name }" /><span class="bot-author-name">by {{ bot.author.name }}</span></a>
           <a v-else-if="bot.author.link" data-track-kind="author" data-testid="author-link" class="bot-author" :href="bot.author.link" target="_blank" rel="noopener noreferrer">by {{ bot.author.name }}<ExternalHint /></a>
           <span v-else class="bot-author">by {{ bot.author.name }}</span>
-          <span v-if="origin" class="bot-origin">· {{ origin }}</span>
         </p>
       </div>
       <p class="bot-tagline">{{ bot.tagline }}</p>
