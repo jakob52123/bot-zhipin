@@ -47,30 +47,18 @@ test('区块顺序：本周主推 → 小队的位置 → 专题 → 全部 Bot�
   expect(problems).toEqual([])
 })
 
-test('主推卡带编辑点评：只有点评本身，前面一个引号图标；点点评也进详情', async ({ page }) => {
+test('主推卡不带编辑点评（决策 79）：介绍下面就是底行，三张卡的底行落在同一条线上', async ({ page }) => {
   await page.goto('/')
   const featured = page.getByTestId('featured-card')
   expect(await featured.count()).toBeGreaterThan(0)
   for (const card of await featured.all()) {
-    const note = card.getByTestId('featured-note')
-    await expect(note).toHaveCount(1)
-    expect((await note.locator('p').innerText()).trim().length, '点评有内容').toBeGreaterThanOrEqual(4)
-    await expect(note.locator('svg')).toHaveAttribute('data-icon', 'quote')
-    await expect(card).not.toContainText('编辑说')
-    // 点评排在介绍下面、底行上面。
-    const [tagline, noteBox, foot] = await Promise.all(['.bot-tagline', '[data-testid="featured-note"]', '.featured-foot'].map((selector) => card.locator(selector).boundingBox()))
-    expect(noteBox.y).toBeGreaterThanOrEqual(tagline.y + tagline.height)
-    expect(foot.y).toBeGreaterThanOrEqual(noteBox.y + noteBox.height)
+    await expect(card.getByTestId('featured-note')).toHaveCount(0)
+    await expect(card.locator('blockquote')).toHaveCount(0)
+    const [tagline, foot] = await Promise.all(['.bot-tagline', '.featured-foot'].map((selector) => card.locator(selector).boundingBox()))
+    expect(foot.y).toBeGreaterThanOrEqual(tagline.y + tagline.height)
   }
-  // 三张卡的底行落在同一条线上。
   const feet = await featured.locator('.featured-foot').evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().bottom)))
   if (await page.evaluate(() => innerWidth >= 900)) expect(new Set(feet).size).toBe(1)
-  // 点评不拦点击：整张卡可点，点它进详情。
-  const first = featured.first(), slug = await first.getAttribute('data-slug')
-  await first.scrollIntoViewIfNeeded()
-  const box = await first.getByTestId('featured-note').boundingBox()
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
-  await expect(page).toHaveURL(new RegExp(`/bots/${slug}$`))
 })
 
 test('专题：一叠小头像、+N、标题、数量；点一个滚到「全部 Bot」并按它筛选，清除还原', async ({ page }) => {
@@ -545,7 +533,7 @@ for (const dark of [false, true]) {
     await page.getByTestId('collection-card').first().click()
     await expect(page.getByTestId('filter-bar')).toBeVisible()
     const selector = [
-      '[data-testid="featured-note"] p', '.collection-title', '.collection-count', '.collection-more',
+      '.collection-title', '.collection-count', '.collection-more',
       '[data-testid="role-tab"] > span', '.sort-seg > button', '.bot-count', '[data-testid="filter-bar"] p > *', '[data-testid="filter-clear"]',
     ].join(', ')
     const check = (selector) => page.locator(selector).evaluateAll((nodes) => {

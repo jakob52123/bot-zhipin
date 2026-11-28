@@ -199,8 +199,9 @@ test('详情、SSR 头像一致性、技能和任务源码链接、外部隐藏�
   await expect(page.getByTestId('section-routines').locator('p')).toHaveCount(0)
   await expect(page.getByTestId('forked-from')).toHaveCount(0)
   await page.goto(`/bots/${external}`)
-  // 来源写在侧栏里（官方市场 / 社区收录 / 作者投稿），页面底部不再有一行来源说明。
-  await expect(page.getByTestId('detail-rail').locator('.bot-origin')).toHaveText('社区收录')
+  // 来源不对访客显示（决策 78）：侧栏没有「来源」一行，页面底部也没有来源说明。
+  await expect(page.getByTestId('detail-rail').locator('.rail-meta dt', { hasText: '来源' })).toHaveCount(0)
+  await expect(page.getByTestId('bot-detail')).not.toContainText(/官方市场|社区收录/)
   await expect(page.getByTestId('bot-detail')).not.toContainText('本站只收录链接')
   await expect(page.locator('.external-notice')).toHaveCount(0)
   // 外部收录没有安装提示词、截图、设计说明；技能用 about 里整理好的名字和一句话，不带源码链接。

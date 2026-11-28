@@ -119,6 +119,8 @@ test.describe('小队详情页', () => {
   test('头部和各区块：合影、标签、阵容、步骤、代价、要知道的事；全页只有一个实心主按钮', async ({ page }) => {
     const errors = []
     await page.route('**/api/events', r => r.fulfill({ status: 204 }))
+    // 作者行的小头像走同源的 /api/avatar（决策 77）；静态预览没有函数，给一张小图，不让 404 记成控制台错误。
+    await page.route('**/api/avatar/**', r => r.fulfill({ path: 'site/public/apple-touch-icon.png', contentType: 'image/png' }))
     page.on('console', (message) => { if (message.type() === 'error' || /hydration/i.test(message.text())) errors.push(message.text()) })
     page.on('pageerror', (error) => errors.push(error.message))
     await page.goto(`/squads/${squad}`)

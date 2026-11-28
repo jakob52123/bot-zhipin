@@ -367,3 +367,6 @@ img.squad-still { overflow: clip; border: 1px solid var(--bz-hairline); border-r
   .photo-hop.is-hopping { animation: none !important; }
   .flow-dot { animation: none !important; visibility: hidden; }
 }
+
+/* 小队页作者行：有 GitHub 的作者名前面一颗小头像（决策 77） */
+.squad-author.has-avatar { display: inline-flex; align-items: center; gap: 6px; vertical-align: middle; }

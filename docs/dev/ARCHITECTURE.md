@@ -136,7 +136,7 @@ bots/*/bot.yaml, *.md, screenshots/        squads/*/squad.yaml        curation/s
 
 `flow` 里的 `from`、`to` 是成员的 slug，或 `you`（代表用户本人）。
 
-**策展**（`curation.data`，对象）：`{ featured: [{ bot, note }], picks: [slug], collections: [{ slug, title, blurb, bots: [slug] }], editorNotes: { slug: 一句话 } }`。里面的 `bot`、`bots` 都是 slug，Bot 的信息按 slug 去 `bots.data` 里取。没有策展文件时四项都是空的。首页的主推读的就是这里的 `featured`（没写主推时退回热度前三）。
+**策展**（`curation.data`，对象）：`{ featured: [{ bot }], picks: [slug], collections: [{ slug, title, blurb, bots: [slug] }], editorNotes: { slug: 一句话 } }`。里面的 `bot`、`bots` 都是 slug，Bot 的信息按 slug 去 `bots.data` 里取。没有策展文件时四项都是空的。首页的主推读的就是这里的 `featured`（没写主推时退回热度前三）。
 
 ### 作者路由与摘要
 

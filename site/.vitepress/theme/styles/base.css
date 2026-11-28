@@ -72,7 +72,7 @@
 
 /* ---------- 标签 .bz-tag（.bot-tag 是旧别名） ----------
    中性款：默认。岗位款 .role：读 --bz-category-color（color.ts 的 categoryStyle 给）。
-   来源款：.community（社区收录）、.author（作者投稿）。「官方市场」不做标签，写进作者行。 */
+   来源款：.community（社区收录）、.author（作者投稿）。官方市场、社区收录不对访客显示（决策 78）。 */
 :is(.bz-tag, .bot-tag) {
   display: inline-flex; align-items: center; gap: var(--bz-sp-1); flex: none; height: 22px; padding: 0 var(--bz-sp-2);
   border-radius: var(--bz-r-control); background-color: var(--bz-surface-2); color: var(--bz-text-2);

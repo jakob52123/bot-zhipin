@@ -94,10 +94,10 @@ for (const scheme of ['light', 'dark']) {
     for (const color of [...colors.categories, ...colors.source]) {
       expect(color.ratio, `${color.name ?? '来源标签'} ${color.fg} / ${color.bg}`).toBeGreaterThanOrEqual(4.5)
     }
-    // 来源标签只有「作者投稿」，和分类标签同一种混法；官方市场、社区收录不做标签，写在作者行里。
+    // 来源标签只有「作者投稿」，和分类标签同一种混法；官方市场、社区收录不显示（决策 78），作者行里也没有。
     expect(colors.source.length).toBeGreaterThan(0)
     await expect(page.locator('.bz-tag', { hasText: /官方市场|社区收录/ })).toHaveCount(0)
-    await expect(page.locator('[data-testid="bot-card"][data-slug="demo-external"] .bot-byline')).toContainText('· 社区收录')
+    await expect(page.locator('[data-testid="bot-card"][data-slug="demo-external"] .bot-byline')).not.toContainText(/官方市场|社区收录|·/)
     await expect(page.locator('[data-testid="bot-card"][data-slug="demo-external"] .source-tag')).toHaveCount(0)
     await expect(page.locator(`[data-testid="bot-card"][data-slug="${weekly}"] .source-tag`)).toHaveText('作者投稿')
   })

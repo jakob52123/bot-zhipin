@@ -2,14 +2,11 @@
 # 这里写的 slug 都必须是货架上的 Bot，写错或者 Bot 已下架，npm run validate 会报错。
 # 字段规则见 schema/curation.schema.json。
 
-# 首页主推，最多 3 个；note 是「为什么推它」，4～80 字。
+# 首页主推，最多 3 个，按这里写的顺序排。
 featured:
   - bot: idea-stress-test
-    note: 什么都不用准备，丢一个点子进去它就开拆。拆完你会知道最该先验证哪一条。
   - bot: video-clip-sop
-    note: 长录像扔进文件夹，它转写、挑片段、剪成片、写文案、做封面，你只在工作台上点四下。
   - bot: copy-humanizer
-    note: 改稿不改意思，每处改动都告诉你为什么。写完的东西有 AI 味，交给它。
 
 # 「推荐」排序的置顶顺序，排在前面的先出现；没写进来的 Bot 排在它们后面。
 picks: [idea-stress-test, pm-bot, critiquito, startup-qa-bot, competitor-watch, product-marketer, ai-search-visibility, sales-call-coach, copy-humanizer, media-downloader, writing-bot, video-editor, clip-bot, video-clip-sop, video-edit-desk, x-brief, event-producer, meeting-recap-deck, quota-saver, memory-keeper, feishu-app-keeper, dr-eggbot, the-interviewer, pfp-bot, zuozuo-ai-intel, wechat-article-catcher, ledger-keeper, decoder, resume-tailor-desk, ai-pm-os]

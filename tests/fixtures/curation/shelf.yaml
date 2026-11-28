@@ -1,11 +1,8 @@
 # 测试用的策展文件：3 个主推、2 个专题，都指向 tests/fixtures/bots/ 里的示例 Bot。
 featured:
   - bot: demo-prd-reviewer
-    note: 示例主推：评审会前先让它挑一遍毛病。
   - bot: demo-weekly-digest
-    note: 示例主推：一周的零散记录交给它整理。
   - bot: demo-external
-    note: 示例主推：一个外部收录的条目。
 picks: [demo-weekly-digest, demo-prd-reviewer]
 collections:
   - slug: demo-starter

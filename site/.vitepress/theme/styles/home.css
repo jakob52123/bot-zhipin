@@ -27,10 +27,12 @@
    会把落在介绍和气泡位置的点击吃掉（鼠标悬停时整张卡最大的一块点不进详情）。 */
 :is(.bot-card, .featured-card) .bot-tagline { pointer-events: none; }
 .bot-byline { font-size: var(--bz-fs-sm); line-height: 1.5; color: var(--bz-text-3); }
-/* 卡片里的作者行只占一行：作者名太长就省略，后面的「· 官方市场」始终留着 */
-.bot-head .bot-byline { display: flex; min-width: 0; margin-top: 2px; }
+/* 卡片里的作者行只占一行：作者名太长就省略 */
+.bot-head .bot-byline { display: flex; align-items: center; min-width: 0; margin-top: 2px; }
+/* 有 GitHub 的投稿人：头像在作者名前面，名字太长只截名字，头像始终留着 */
+.bot-author.has-avatar { display: inline-flex; align-items: center; gap: 6px; }
+.bot-author.has-avatar > .bot-author-name { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .bot-head .bot-author { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.bot-origin { flex: none; margin-left: .4em; white-space: nowrap; }
 .bot-byline a { color: inherit; }
 .bot-byline a:hover { color: var(--bz-ink); }
 .bot-tagline {
@@ -48,7 +50,7 @@
 /* 标签着色：分类色、来源色都是 14% 混卡片底，字是 40% 混墨色。 */
 .bz-tag.category-tag, .bz-tag.source-tag, .bz-tag.platform-tag { background: color-mix(in srgb, var(--bz-tag-color) 14%, var(--bz-card)); color: color-mix(in srgb, var(--bz-tag-color) 40%, var(--bz-ink)); }
 .bz-tag.category-tag { --bz-tag-color: var(--bz-category-color); }
-/* 来源标签只剩「作者投稿」一种；官方市场、社区收录都写在作者行里 */
+/* 来源标签只剩「作者投稿」一种；官方市场、社区收录不显示（决策 78） */
 .bz-tag.source-tag { --bz-tag-color: #ff6a13; }
 /* 平台标签只挂在 OpenBot 的 Bot 上（货架上的 Bot 默认都是 Grok Bot，不挂） */
 .bz-tag.platform-tag { --bz-tag-color: #4f46e5; }
@@ -85,13 +87,6 @@ img.bot-still { display: block; flex: none; border-radius: 50%; object-fit: cove
 .featured-tile { width: 72px; height: 72px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .featured-tile svg, .featured-tile img { display: block; width: 68%; height: 68%; }
 .featured-card .bot-tagline { margin-top: var(--bz-sp-4); }
-/* 编辑点评：只有点评本身，前面一个 Bot 色的引号。垫一块淡淡染了 Bot 色的底，读得出是另一个人在说话 */
-.featured-note {
-  display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: var(--bz-sp-2); margin: var(--bz-sp-4) 0 0; padding: var(--bz-sp-3);
-  border: 0; border-radius: var(--bz-r-control); background-color: color-mix(in srgb, var(--bz-bot-color) 7%, var(--bz-surface-2));
-}
-.featured-note > svg { color: color-mix(in srgb, var(--bz-bot-color) 70%, var(--bz-ink)); }
-.shelf-page .featured-note p { font-size: var(--bz-fs-sm); line-height: var(--bz-lh-sm); color: color-mix(in srgb, var(--bz-ink) 85%, var(--bz-page)); text-wrap: pretty; }
 .featured-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--bz-sp-3); margin-top: auto; padding-top: var(--bz-sp-5); }
 @media (hover: hover) {
   .featured-card:hover { border-color: color-mix(in srgb, var(--bz-bot-color) 42%, var(--bz-hairline)); }
